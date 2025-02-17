@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
+
+import '../../../../core/constants/route_constant.dart';
 
 class VerifyEmailPage extends StatefulWidget {
   const VerifyEmailPage({super.key});
@@ -11,6 +16,8 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   final List<TextEditingController> _controllers =
       List.generate(4, (index) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
+
+  bool isLoading = false; // Add this to manage the loading state
 
   @override
   void dispose() {
@@ -35,6 +42,10 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+    final Map<String, dynamic> userData =
+        (GoRouter.of(context).routerDelegate as GoRouterDelegate).state.extra
+            as Map<String, dynamic>;
+
     return SafeArea(
         child: Scaffold(
       body: Center(
@@ -86,15 +97,50 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                 ),
               ),
               SizedBox(height: height * 0.04),
-              SizedBox(
-                width: width * 0.8,
-                child: ElevatedButton(
-                  onPressed: () {
-                    String otp = _controllers.map((c) => c.text).join();
-                    print("Entered OTP: $otp");
-                    // Add OTP verification logic here
-                  },
-                  child: Text("Verify"),
+
+              // BlocListener to trigger actions without rebuilding UI
+              BlocListener<AuthBloc, AuthState>(
+                listener: (context, state) {
+                  if (state is AuthLoading) {
+                    setState(() {
+                      isLoading = true;
+                    });
+                  } else {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
+
+                  if (state is AuthVerifyOtpSuccessState) {
+                    // Trigger registration only once
+                    context.read<AuthBloc>().add(AuthRegisterEvent(
+                        state.email, userData["password"], userData["name"]));
+                  }
+
+                  if (state is AuthRegisterSuccessState) {
+                    // Navigate to home only once
+                    context.goNamed(RouteConstant.loginPageRoute);
+                  }
+                },
+                child: SizedBox(
+                  width: width * 0.8,
+                  child: ElevatedButton(
+                    onPressed: isLoading
+                        ? null // Disable button when loading
+                        : () {
+                            String otp = _controllers.map((c) => c.text).join();
+                            print("Entered OTP: $otp");
+
+                            // Add OTP verification logic here
+                            context.read<AuthBloc>().add(
+                                AuthVerifyOtpEvent(userData['email'], otp));
+                          },
+                    child: isLoading
+                        ? CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          )
+                        : const Text("Verify"),
+                  ),
                 ),
               ),
             ],

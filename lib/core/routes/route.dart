@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:near_me/core/constants/route_constant.dart';
+import 'package:near_me/features/Auth/presentation/pages/enter_password_page.dart';
+import 'package:near_me/features/Auth/presentation/pages/forgot_passowrd_page.dart';
 import 'package:near_me/features/Auth/presentation/pages/sign_up_page.dart';
 import 'package:near_me/features/Auth/presentation/pages/verify_email_page.dart';
 import 'package:near_me/features/Auth/presentation/pages/welcome_page.dart';
@@ -38,6 +40,11 @@ final GoRouter router = GoRouter(
       path: '/home',
       name: RouteConstant.homePageRoute,
       builder: (context, state) => HomePage(),
+    ),
+    GoRoute(
+      path: '/forgotPassword',
+      name: RouteConstant.forgotPasswordPageRoute,
+      builder: (context, state) => ForgotPasswordPage(),
     ),
   ],
 );

@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:near_me/core/service/email_service.dart';
+import 'package:near_me/dependency_injection.dart';
+import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/Auth/presentation/pages/login_page.dart';
 import 'package:near_me/firebase_options.dart';
 import 'package:http/http.dart' as http;
@@ -14,7 +17,9 @@ import 'core/routes/route.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await init();
   runApp(const MainApp());
 }
 
@@ -28,6 +33,7 @@ class MainApp extends StatelessWidget {
         BlocProvider(
           create: (context) => SampleBloc(),
         ),
+        BlocProvider(create: (context) => sl<AuthBloc>()),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
