@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/core/constants/api_constant.dart';
 import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/core.dart';
@@ -22,8 +23,9 @@ class AuthRepositoryImpl implements AuthRepository {
   final SharedPreferences sharedPreferences;
   final NetworkInfo networkInfo;
   final FirebaseAppCheck firebaseAppCheck;
+  final FlutterSecureStorage secureStorage;
   AuthRepositoryImpl(this.firestore, this.firebaseAuth, this.sharedPreferences,
-      this.networkInfo, this.firebaseAppCheck);
+      this.networkInfo, this.firebaseAppCheck, this.secureStorage);
   @override
   Future<Either<Failure, Unit>> requestOtp(String email) async {
     if (await networkInfo.isConnected) {
@@ -94,6 +96,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String email,
     String password,
     String name,
+    String gender,
   ) async {
     if (await networkInfo.isConnected) {
       try {
@@ -101,21 +104,26 @@ class AuthRepositoryImpl implements AuthRepository {
             .createUserWithEmailAndPassword(email: email, password: password);
         var uid = userCredential.user!.uid;
         var value = UserModel(
-                id: uid,
-                email: email,
-                name: name,
-                photoUrl: "",
-                backgroundUrl: "",
-                isEmailVerified: true,
-                password: password,
-                bio: "",
-                lat: 0,
-                userStatusVisibility: true,
-                lon: 0,
-                getNearby: true)
-            .toMap();
+          id: uid,
+          email: email,
+          name: name,
+          photoUrl: "",
+          backgroundUrl: "",
+          isEmailVerified: true,
+          password: password,
+          bio: "",
+          university: "",
+          major: "",
+          gender: gender,
+        ).toMap();
         await firestore.collection("users").doc(uid).set(value);
-        sharedPreferences.setString(Constant.userIdPrefernceKey, uid);
+        secureStorage.write(key: Constant.userIdSecureStorageKey, value: uid);
+        secureStorage.write(
+            key: Constant.userPasswordSecureStoreKey, value: password);
+        value["id"] = null;
+        value["password"] = null;
+        sharedPreferences.setString(
+            Constant.userPreferenceKey, value.toString());
         return const Right(unit);
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
@@ -171,24 +179,44 @@ class AuthRepositoryImpl implements AuthRepository {
       String email, String password) async {
     if (await networkInfo.isConnected) {
       try {
+        print(email);
+        print(password);
         await firebaseAuth.signInWithEmailAndPassword(
             email: email, password: password);
+
         var value = await firestore
             .collection("users")
             .where("email", isEqualTo: email)
             .get();
-        if (value.docs.isNotEmpty) {
-          var user = UserModel.fromMap(value.docs.first.data());
-          sharedPreferences.setString(Constant.userIdPrefernceKey, user.id);
-          sharedPreferences.setString(
-              Constant.userPreferenceKey, user.toMap().toString());
 
-          print("------------------sharedPreferences------------------");
-          print(sharedPreferences.getString(Constant.userIdPrefernceKey));
-          print(sharedPreferences.getString(Constant.userPreferenceKey));
+        if (value.docs.isNotEmpty) {
+          print("the user is found");
+          print(value.docs.first.data());
+          var user = UserModel.fromMap(value.docs.first.data());
+          print(user.id);
+          await secureStorage.write(
+              key: Constant.userIdSecureStorageKey, value: user.id);
+          await secureStorage.write(
+              key: Constant.userPasswordSecureStoreKey, value: password);
+          print("am i here");
+          // Create a copy of user data without sensitive fields
+          var userData = Map<String, dynamic>.from(value.docs.first.data());
+          userData.remove("id");
+          userData.remove("password");
+
+          // Store in SharedPreferences as JSON string
+          await sharedPreferences.setString(
+              Constant.userPreferenceKey, jsonEncode(userData));
+
+          print("---------------------------");
+          var storedUserId =
+              await secureStorage.read(key: Constant.userIdSecureStorageKey);
+          print(storedUserId);
+
           return Right(user);
+        } else {
+          return const Left(ServerFailure(message: "User not found"));
         }
-        return const Left(ServerFailure(message: "User not found"));
       } on FirebaseAuthException catch (e) {
         print("------------------FirebaseAuthException------------------");
         print(e.code);
@@ -205,6 +233,9 @@ class AuthRepositoryImpl implements AuthRepository {
           return const Left(ServerFailure(message: "Network error"));
         }
         return Left(ServerFailure(message: e.code));
+      } catch (e) {
+        print(e.toString());
+        return Left(ServerFailure(message: e.toString()));
       }
     } else {
       return const Left(ServerFailure(message: "No internet connection"));
@@ -264,13 +295,47 @@ class AuthRepositoryImpl implements AuthRepository {
           print('Request was successful!');
           return const Right(unit);
         } else {
+          print(response.statusCode);
+          print(response.body);
+
           print('Failed to authenticate');
-          return Left(ServerFailure(message: response.body));
+          return Left(ServerFailure(message: "failed to authenticate"));
         }
       } catch (e) {
         print('Error: $e');
         return Left(ServerFailure(message: e.toString()));
       }
+    } else {
+      return const Left(ServerFailure(message: "No internet connection"));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> logOut() async {
+    if (await networkInfo.isConnected) {
+      try {
+        await firebaseAuth.signOut();
+        secureStorage.deleteAll();
+        sharedPreferences.clear();
+        return const Right(unit);
+      } catch (e) {
+        return const Left(ServerFailure(message: "Failed to log out"));
+      }
+    } else {
+      return const Left(ServerFailure(message: "No internet connection"));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isLoggedIn() async {
+    if (await networkInfo.isConnected) {
+      var value =
+          await secureStorage.read(key: Constant.userIdSecureStorageKey);
+      if (value != null) {
+        return const Right(unit);
+      }
+
+      return const Left(ServerFailure(message: "User not logged in"));
     } else {
       return const Left(ServerFailure(message: "No internet connection"));
     }

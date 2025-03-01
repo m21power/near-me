@@ -115,3 +115,27 @@ final class UpdatePasswordFailedState extends AuthState {
   @override
   List<Object> get props => [message];
 }
+
+final class LogOutSuccessState extends AuthState {
+  @override
+  List<Object> get props => [];
+}
+
+final class LogOutFailedState extends AuthState {
+  final String message;
+  const LogOutFailedState(this.message);
+  @override
+  List<Object> get props => [message];
+}
+
+final class AuthLoggedInSuccessState extends AuthState {
+  @override
+  List<Object> get props => [];
+}
+
+final class AuthLoggedInFailedState extends AuthState {
+  final String message;
+  const AuthLoggedInFailedState(this.message);
+  @override
+  List<Object> get props => [message];
+}

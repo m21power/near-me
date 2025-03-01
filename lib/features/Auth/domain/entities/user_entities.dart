@@ -9,24 +9,21 @@ class UserModel {
   final String? backgroundUrl;
   final bool? isEmailVerified;
   final String? bio;
-  final double? lat;
-  final double? lon;
-  final bool? getNearby;
-  final bool? userStatusVisibility;
-  UserModel({
-    required this.id,
-    required this.email,
-    required this.name,
-    required this.photoUrl,
-    required this.backgroundUrl,
-    required this.isEmailVerified,
-    required this.password,
-    required this.bio,
-    required this.lat,
-    required this.userStatusVisibility,
-    required this.lon,
-    required this.getNearby,
-  });
+  final String gender;
+  final String university;
+  final String major;
+  UserModel(
+      {required this.id,
+      required this.email,
+      required this.university,
+      required this.major,
+      required this.name,
+      required this.photoUrl,
+      required this.backgroundUrl,
+      required this.isEmailVerified,
+      required this.password,
+      required this.bio,
+      required this.gender});
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -38,28 +35,25 @@ class UserModel {
       'isEmailVerified': isEmailVerified,
       'password': password,
       'bio': bio ?? '',
-      'lat': lat ?? 0.0,
-      'lon': lon ?? 0.0,
-      'getNearby': getNearby,
-      'userStatusVisibility': userStatusVisibility ?? true,
+      'gender': gender,
+      'University': university,
+      'Major': major
     };
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      id: map['id'] as String,
-      email: map['email'] as String,
-      name: map['name'] as String,
-      photoUrl: map['photoUrl'] as String,
-      backgroundUrl: map['backgroundUrl'] as String,
-      isEmailVerified: map['isEmailVerified'] as bool,
-      password: map['password'] as String,
-      bio: map['bio'] as String,
-      lat: map['lat'] as double,
-      lon: map['lon'] as double,
-      getNearby: map['getNearby'] as bool,
-      userStatusVisibility: map['userStatusVisibility'] as bool,
-    );
+        id: map['id'] ?? "",
+        email: map['email'] as String,
+        name: map['name'] as String,
+        photoUrl: map['photoUrl'] ?? "",
+        backgroundUrl: map['backgroundUrl'] ?? "",
+        isEmailVerified: map['isEmailVerified'] as bool,
+        password: map['password'] ?? "",
+        bio: map['bio'] ?? "",
+        gender: map['gender'] as String,
+        university: map['university'] ?? "",
+        major: map['major'] ?? "");
   }
 
   String toJson() => json.encode(toMap());

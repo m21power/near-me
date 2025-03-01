@@ -19,6 +19,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController nameController = TextEditingController();
 
   bool isLoading = false;
+  String? gender;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +50,25 @@ class _SignUpPageState extends State<SignUpPage> {
                 emailTile(context, "Enter your name", nameController),
                 SizedBox(height: height * 0.03),
                 emailTile(context, "Enter your email", emailController),
+                SizedBox(height: height * 0.02),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: "Select your gender",
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: "male", child: Text("Male")),
+                      DropdownMenuItem(value: "female", child: Text("Female")),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        gender = value;
+                      });
+                    },
+                  ),
+                ),
                 SizedBox(height: height * 0.03),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -66,6 +86,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
+                            SizedBox(height: height * 0.02),
                             TextField(
                               controller: passwordController,
                               obscureText: obscureText,
@@ -120,6 +141,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           'name': nameController.text,
                           'email': emailController.text,
                           'password': passwordController.text,
+                          'gender': gender
                         },
                       );
                     } else if (state is EmailValidationFailedState) {
@@ -136,7 +158,8 @@ class _SignUpPageState extends State<SignUpPage> {
                       onPressed: () {
                         if (passwordController.text.isEmpty ||
                             emailController.text.isEmpty ||
-                            confirmPasswordController.text.isEmpty) {
+                            confirmPasswordController.text.isEmpty ||
+                            gender == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text("Please fill all fields")),

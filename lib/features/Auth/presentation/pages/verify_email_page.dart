@@ -114,7 +114,10 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                   if (state is AuthVerifyOtpSuccessState) {
                     // Trigger registration only once
                     context.read<AuthBloc>().add(AuthRegisterEvent(
-                        state.email, userData["password"], userData["name"]));
+                        state.email,
+                        userData["password"],
+                        userData["name"],
+                        userData["gender"]));
                   }
 
                   if (state is AuthRegisterSuccessState) {

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 final ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
   colorScheme: const ColorScheme.light(
-    primary: Colors.blue, // Main brand color
+    primary: Color.fromARGB(255, 81, 142, 192), // Main brand color
     secondary: Colors.orange, // Accent color
     surface: Colors.white, // Card background
     background: Color(0xFFF5F5F5), // Light grey background
@@ -12,7 +12,7 @@ final ThemeData lightTheme = ThemeData(
     onSurface: Colors.black87, // Text on surface
   ),
   appBarTheme: const AppBarTheme(
-    backgroundColor: Colors.blue,
+    backgroundColor: Color.fromARGB(255, 81, 142, 192),
     foregroundColor: Colors.white,
     elevation: 2,
   ),

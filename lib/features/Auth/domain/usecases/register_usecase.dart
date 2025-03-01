@@ -12,7 +12,8 @@ class RegisterUsecase {
     String email,
     String password,
     String name,
+    String gender,
   ) async {
-    return await repository.register(email, password, name);
+    return await repository.register(email, password, name, gender);
   }
 }

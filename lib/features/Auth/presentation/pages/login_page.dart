@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
+import 'package:near_me/features/Auth/presentation/pages/enter_password_page.dart';
 import 'package:near_me/features/home/presentation/home.dart';
 
 import '../../../../core/constants/route_constant.dart';
@@ -80,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     );
                   } else if (state is AuthLoginSuccessState) {
-                    context.goNamed(RouteConstant.homePageRoute);
+                    context.goNamed(RouteConstant.topBarPageRoute);
                   }
                 },
                 child: BlocBuilder<AuthBloc, AuthState>(

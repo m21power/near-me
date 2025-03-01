@@ -19,7 +19,8 @@ final class AuthRegisterEvent extends AuthEvent {
   final String name;
   final String email;
   final String password;
-  AuthRegisterEvent(this.email, this.password, this.name);
+  final String gender;
+  AuthRegisterEvent(this.email, this.password, this.name, this.gender);
 }
 
 final class EmailValidationEvent extends AuthEvent {
@@ -43,4 +44,12 @@ final class UpdatePasswordEvent extends AuthEvent {
   final String email;
   final String password;
   UpdatePasswordEvent(this.email, this.password);
+}
+
+final class LogOutEvent extends AuthEvent {
+  LogOutEvent();
+}
+
+final class AuthLoggedInEvent extends AuthEvent {
+  AuthLoggedInEvent();
 }
