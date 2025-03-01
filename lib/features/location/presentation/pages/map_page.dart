@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:near_me/features/Auth/domain/entities/user_entities.dart';
-import 'package:near_me/features/home/presentation/widgets/custom_drawer.dart';
 
 import '../../../profile/presentation/pages/my_profile_page.dart';
 

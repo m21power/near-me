@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../Auth/domain/entities/user_entities.dart';
 import '../bloc/profile_bloc.dart';
 
 class EditProfilePage extends StatefulWidget {

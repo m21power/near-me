@@ -1,18 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/image_picker/image_picker.dart';
 import 'package:near_me/dependency_injection.dart';
-import 'package:near_me/features/home/presentation/widgets/custom_drawer.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../../Auth/domain/entities/user_entities.dart';
 
 class MyProfilePage extends StatefulWidget {
   final List<String> userPosts;

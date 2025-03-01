@@ -2,15 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/chat/presentation/pages/chat_page.dart';
 import 'package:near_me/features/home/presentation/widgets/custom_drawer.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/features/location/presentation/pages/map_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class TopBar extends StatefulWidget {
   @override

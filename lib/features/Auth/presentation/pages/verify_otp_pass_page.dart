@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/Auth/presentation/pages/enter_password_page.dart';
-
-import '../../../../core/constants/route_constant.dart';
 
 class VerifyOtpPassPage extends StatefulWidget {
   final String email;
