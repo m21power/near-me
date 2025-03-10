@@ -1,11 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/constants/user_constant.dart';
-import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/presentation/pages/conversation_page.dart';
 
@@ -144,12 +139,14 @@ class ChatListItem extends StatelessWidget {
     return ListTile(
       onTap: () {
         amUser1
-            ? context
-                .read<ConversationBloc>()
-                .add(GetMessageEvent(chatEntity.user2Id))
-            : context
-                .read<ConversationBloc>()
-                .add(GetMessageEvent(chatEntity.user1Id));
+            ? context.read<ConversationBloc>().add(GetMessageEvent(
+                chatEntity.user2Id,
+                lastMessage: null,
+                limit: 20))
+            : context.read<ConversationBloc>().add(GetMessageEvent(
+                chatEntity.user1Id,
+                lastMessage: null,
+                limit: 20));
         Navigator.push(
             context,
             MaterialPageRoute(

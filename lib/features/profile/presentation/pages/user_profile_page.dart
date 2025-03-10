@@ -54,6 +54,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       user2Id: widget.user.id,
                       user2ProfilePic: widget.user.photoUrl ?? '',
                       unreadCount: 0,
+                      totalUnreadCount: 0,
                       user2Gender: widget.user.gender,
                       user1Gender: user['gender'] ?? '',
                       user1Name: user['name'] ?? '',

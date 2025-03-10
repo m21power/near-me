@@ -67,7 +67,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Stream<List<ChatEntities>> getChats(String userId) {
-    return Stream.periodic(Duration(seconds: 5)).asyncMap((_) async {
+    return Stream.periodic(Duration(seconds: 2)).asyncMap((_) async {
       int totalUnreadCount = 0;
       var chatSnapshot = await fireStore
           .collection('chats')
@@ -109,6 +109,7 @@ class ChatRepositoryImpl implements ChatRepository {
             user2Gender: lastThing['user2Gender'],
             user1Gender: lastThing['user1Gender'],
             user1Name: lastThing['user1Name'],
+            totalUnreadCount: totalUnreadCount,
             user1ProfilePic: lastThing['user1ProfilePic']);
         result.add(chatEntities);
       }
@@ -144,7 +145,6 @@ class ChatRepositoryImpl implements ChatRepository {
             .collection('messages')
             .orderBy('timestamp', descending: true)
             .limit(limit);
-
         if (lastMessage != null) {
           query = query.startAfterDocument(lastMessage);
         }
@@ -154,6 +154,14 @@ class ChatRepositoryImpl implements ChatRepository {
         List<BubbleModel> result = messagesSnapshot.docs
             .map((doc) => BubbleModel.fromFirestore(doc))
             .toList();
+
+        // Update seen status
+        for (var doc in messagesSnapshot.docs) {
+          if (doc['senderId'] != user1Id && !doc['seen']) {
+            await doc.reference.update({'seen': true});
+          }
+        }
+
         return Right(result);
       } catch (e) {
         return Left(ServerFailure(message: e.toString()));

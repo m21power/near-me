@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,9 +26,10 @@ class _ConversationPageState extends State<ConversationPage> {
   final ScrollController messageInputController = ScrollController();
 
   List<BubbleModel> bubbles = [];
-  bool showEmoji = true;
+  bool showEmoji = false;
   bool isLoading = false;
   bool allMessageFetched = false;
+
   @override
   void initState() {
     super.initState();
@@ -70,15 +73,6 @@ class _ConversationPageState extends State<ConversationPage> {
               true; // Set loading to true when new messages are being fetched
         });
       }
-
-      // context.read<ConversationBloc>().add(GetMessageEvent(
-      //       widget.amUser1
-      //           ? widget.chatEntity.user2Id
-      //           : widget.chatEntity.user1Id,
-      //       lastMessage:
-      //           bubbles.isNotEmpty ? bubbles.last.documentSnapshot : null,
-      //       limit: 20, // Pagination limit
-      //     ));
     }
   }
 
@@ -112,6 +106,14 @@ class _ConversationPageState extends State<ConversationPage> {
           }
           if (state is SendMessageSuccessState) {
             bubbles.insert(0, state.sentMessage);
+            context.read<ConversationBloc>().add(GetMessageEvent(
+                  widget.amUser1
+                      ? widget.chatEntity.user2Id
+                      : widget.chatEntity.user1Id,
+                  lastMessage:
+                      null, // Initial fetch, no pagination required yet
+                  limit: 20, // Limit for pagination
+                ));
           }
 
           return Scaffold(

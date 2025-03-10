@@ -28,7 +28,17 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
       result.fold(
         (failure) => emit(GetMessageFailureState(failure.message)),
         (newMessages) {
-          if (state is GetMessageSuccessState) {
+          if (event.lastMessage == null) {
+            // If lastMessage is null, it means this is a fresh fetch, so clear old messages
+            final hasMore = newMessages.length == event.limit;
+            emit(GetMessageSuccessState(
+              messages: newMessages,
+              lastMessage: newMessages.isNotEmpty
+                  ? newMessages.last.documentSnapshot
+                  : null,
+              hasMore: hasMore,
+            ));
+          } else if (state is GetMessageSuccessState) {
             final oldMessages = (state as GetMessageSuccessState).messages;
             final hasMore = newMessages.length == event.limit;
             emit(GetMessageSuccessState(
@@ -38,7 +48,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
                   : event.lastMessage,
               hasMore: hasMore,
             ));
-          } else {
+          } else if (state is! SendMessageSuccessState) {
             final hasMore = newMessages.length == event.limit;
             emit(GetMessageSuccessState(
               messages: newMessages,

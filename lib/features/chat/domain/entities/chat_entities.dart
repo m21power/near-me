@@ -65,6 +65,7 @@ class ChatEntities {
   final String user2Gender;
 
   final int unreadCount;
+  final int totalUnreadCount;
 
   ChatEntities(
       {required this.chatId,
@@ -78,6 +79,7 @@ class ChatEntities {
       required this.user2Gender,
       required this.user1Gender,
       required this.user1Name,
+      required this.totalUnreadCount,
       required this.user1ProfilePic});
 
   Map<String, dynamic> toMap() {
@@ -94,6 +96,7 @@ class ChatEntities {
       'user2Gender': user2Gender,
       'user2Id': user2Id,
       'unreadCount': unreadCount,
+      'totalUnreadCount': totalUnreadCount,
     };
   }
 
@@ -111,6 +114,7 @@ class ChatEntities {
       user2ProfilePic: map['user2ProfilePic'] as String,
       unreadCount: map['unreadCount'] as int,
       user2Id: map['user2Id'] as String,
+      totalUnreadCount: map['totalUnreadCount'] as int,
     );
   }
 

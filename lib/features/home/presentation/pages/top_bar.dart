@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/pages/chat_page.dart';
 import 'package:near_me/features/home/presentation/widgets/custom_drawer.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
@@ -18,6 +19,7 @@ final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 class _TopBarState extends State<TopBar> {
   bool isSearching = false;
+  int totalUnreadCount = 0;
   void _showLocationDialog(BuildContext context) {
     // Show the dialog
     showDialog(
@@ -129,8 +131,39 @@ class _TopBarState extends State<TopBar> {
                         color: Theme.of(context).colorScheme.onPrimary),
                   ),
                   Tab(
-                    icon: FaIcon(FontAwesomeIcons.rocketchat,
-                        color: Theme.of(context).colorScheme.onPrimary),
+                    icon: BlocBuilder<ChatBloc, ChatState>(
+                      builder: (context, state) {
+                        if (state is GetChatEntitiesState) {
+                          totalUnreadCount =
+                              state.chatEntites.last.totalUnreadCount;
+                        }
+                        return Stack(
+                          children: [
+                            FaIcon(FontAwesomeIcons.rocketchat,
+                                color: Theme.of(context).colorScheme.onPrimary),
+                            totalUnreadCount != 0
+                                ? Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: CircleAvatar(
+                                      radius: 9,
+                                      backgroundColor: Colors.red,
+                                      child: Text(
+                                        totalUnreadCount > 9
+                                            ? "9+"
+                                            : totalUnreadCount.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : SizedBox(),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                   Tab(
                     icon: FaIcon(FontAwesomeIcons.streetView,
