@@ -1,9 +1,19 @@
-import 'dart:io';
+import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:near_me/core/constants/constant.dart';
+import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/dependency_injection.dart';
+import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
+import 'package:near_me/features/chat/presentation/pages/conversation_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Auth/domain/entities/user_entities.dart';
+import '../../../chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
 
 class UserProfilePage extends StatefulWidget {
   final UserModel user;
@@ -28,7 +38,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
           actions: [
             if (isConnected)
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  var user = jsonDecode(sl<SharedPreferences>()
+                      .getString(Constant.userPreferenceKey)!);
+                  var user1Id = UserConstant().getUserId();
+                  context
+                      .read<ConversationBloc>()
+                      .add(GetMessageEvent(widget.user.id));
+                  ChatEntities chatEntity = ChatEntities(
+                      chatId: '',
+                      lastMessage: '',
+                      lastMessageTime: Timestamp.now(),
+                      user1Id: user1Id!,
+                      user2Name: widget.user.name,
+                      user2Id: widget.user.id,
+                      user2ProfilePic: widget.user.photoUrl ?? '',
+                      unreadCount: 0,
+                      user2Gender: widget.user.gender,
+                      user1Gender: user['gender'] ?? '',
+                      user1Name: user['name'] ?? '',
+                      user1ProfilePic: user['photoUrl'] ?? '');
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ConversationPage(
+                              chatEntity: chatEntity, amUser1: true)));
+                },
                 icon: FaIcon(FontAwesomeIcons.rocketchat,
                     color: Theme.of(context).colorScheme.onPrimary),
               ),
@@ -64,7 +99,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
 
                 // Profile Image Section
-                const Positioned(
+                Positioned(
                   top: 100,
                   child: Stack(
                     alignment: Alignment.center,
@@ -72,6 +107,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       CircleAvatar(
                         radius: 50,
                         backgroundImage: AssetImage("assets/male.png"),
+                        foregroundImage: widget.user.photoUrl != null
+                            ? NetworkImage(widget.user.photoUrl!)
+                            : null,
                       ),
                     ],
                   ),

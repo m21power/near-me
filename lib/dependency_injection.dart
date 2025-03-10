@@ -6,6 +6,14 @@ import 'package:get_it/get_it.dart' as get_it;
 import 'package:image_picker/image_picker.dart';
 import 'package:near_me/features/Auth/data/repository/auth_repository_impl.dart';
 import 'package:near_me/features/Auth/domain/repository/auth_repository.dart';
+import 'package:near_me/features/chat/data/repository/chat_repository_impl.dart';
+import 'package:near_me/features/chat/domain/repository/chat_repository.dart';
+import 'package:near_me/features/chat/domain/usecases/get_chat_usecase.dart';
+import 'package:near_me/features/chat/domain/usecases/get_message_usecase.dart';
+import 'package:near_me/features/chat/domain/usecases/is_online_usecase.dart';
+import 'package:near_me/features/chat/domain/usecases/send_message_usecase.dart';
+import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
 import 'package:near_me/features/profile/data/repository/profile_repo_impl.dart';
 import 'package:near_me/features/profile/domain/usecases/get_user_byId_usecase.dart';
 import 'package:near_me/features/Auth/domain/usecases/is_logged_in_usecase.dart';
@@ -137,4 +145,38 @@ Future<void> init() async {
       updateProfileUsecase: sl(),
     ),
   );
+
+  // chat
+  // repository
+  sl.registerLazySingleton<ChatRepository>(() => ChatRepositoryImpl(
+        sl(),
+        sl(),
+        sl(),
+        sl(),
+      ));
+
+  //usecases
+  sl.registerLazySingleton<SendMessageUsecase>(
+      () => SendMessageUsecase(chatRepository: sl()));
+  sl.registerLazySingleton<IsOnlineUsecase>(
+      () => IsOnlineUsecase(chatRepository: sl()));
+  sl.registerLazySingleton<GetChatUsecase>(
+    () => GetChatUsecase(chatRepository: sl()),
+  );
+  sl.registerLazySingleton<GetMessageUsecase>(
+    () => GetMessageUsecase(chatRepository: sl()),
+  );
+//bloc
+  sl.registerFactory<ChatBloc>(
+    () => ChatBloc(
+      isOnlineUsecase: sl(),
+      getChatUsecase: sl(),
+    ),
+  );
+
+  //converstation
+  sl.registerFactory<ConversationBloc>(() => ConversationBloc(
+        getMessageUsecase: sl(),
+        sendMessageUsecase: sl(),
+      ));
 }

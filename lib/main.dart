@@ -1,9 +1,16 @@
+import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:near_me/core/constants/constant.dart';
+import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
+import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/ThemeBloc/theme_bloc.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/firebase_options.dart';
@@ -19,6 +26,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await init();
   await dotenv.load(fileName: ".env");
+  await UserConstant().initializeUser();
   runApp(const MainApp());
 }
 
@@ -39,6 +47,8 @@ class MainApp extends StatelessWidget {
           create: (context) => sl<LocationBloc>(),
         ),
         BlocProvider(create: (context) => sl<ProfileBloc>()),
+        BlocProvider(create: (context) => sl<ChatBloc>()),
+        BlocProvider(create: (context) => sl<ConversationBloc>()),
       ],
       child: BlocBuilder<ThemeBloc, ThemeMode>(
         builder: (context, themeMode) {

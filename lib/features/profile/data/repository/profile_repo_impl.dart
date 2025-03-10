@@ -126,7 +126,6 @@ class ProfileRepoImpl extends ProfileRepository {
   Future<String> uploadImage(
       bool isProfile, String imagePath, String prevUrl, String userId) async {
     try {
-      print(prevUrl);
       if (isProfile == true) {
         var isDeleted = true;
         if (prevUrl.isNotEmpty) {
@@ -140,7 +139,8 @@ class ProfileRepoImpl extends ProfileRepository {
               .add(await http.MultipartFile.fromPath('file', imagePath));
           request.fields["userId"] = userId;
           request.fields["imageType"] = "profile";
-          var response = await request.send();
+          var response =
+              await request.send().timeout(const Duration(seconds: 10));
           if (response.statusCode == 200) {
             var responseData = await http.Response.fromStream(response);
             var responseBody = jsonDecode(responseData.body);
@@ -186,7 +186,8 @@ class ProfileRepoImpl extends ProfileRepository {
     try {
       String publicId = publicIdFromUrl(imageUrl);
       var uri = Uri.parse('${ApiConstant.BASE_URL}/delete/$publicId');
-      var response = await client.delete(uri);
+      var response =
+          await client.delete(uri).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         return true;

@@ -72,9 +72,9 @@ class _MyProfilePageState extends State<MyProfilePage> {
                                 fontSize: 22, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 5),
                         Text(
-                            userModel['University'] ?? "Add University/college",
+                            userModel['university'] ?? "Add University/college",
                             style: const TextStyle(fontSize: 16)),
-                        Text(userModel['Major'] ?? "Add Major",
+                        Text(userModel['major'] ?? "Add Major",
                             style: const TextStyle(fontSize: 16)),
 
                         const SizedBox(height: 10),

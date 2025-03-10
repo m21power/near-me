@@ -36,8 +36,8 @@ class UserModel {
       'password': password,
       'bio': bio ?? '',
       'gender': gender,
-      'University': university,
-      'Major': major
+      'university': university,
+      'major': major
     };
   }
 

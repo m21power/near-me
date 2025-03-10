@@ -36,12 +36,6 @@ class _SignUpPageState extends State<SignUpPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (isLoading)
-                  const SizedBox(
-                    height: 25,
-                    width: 25,
-                    child: CircularProgressIndicator(),
-                  ),
                 Text(
                   "Sign up",
                   style: Theme.of(context).textTheme.displayLarge,
