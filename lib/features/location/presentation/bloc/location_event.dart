@@ -20,3 +20,5 @@ final class LocationDisabledEvent extends LocationEvent {
 }
 
 final class LocationOpenedEvent extends LocationEvent {}
+
+final class GetNearbyUsersEvent extends LocationEvent {}

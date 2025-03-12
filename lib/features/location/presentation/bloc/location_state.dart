@@ -29,3 +29,17 @@ final class LocationOpenedState extends LocationState {
   @override
   List<Object> get props => [];
 }
+
+final class GetNearbyUsersSuccessState extends LocationState {
+  final List<UserLocEntity> nearbyUsers;
+  GetNearbyUsersSuccessState(this.nearbyUsers);
+  @override
+  List<Object> get props => [nearbyUsers];
+}
+
+final class GetNearbyUsersFailureState extends LocationState {
+  final String message;
+  GetNearbyUsersFailureState(this.message);
+  @override
+  List<Object> get props => [message];
+}

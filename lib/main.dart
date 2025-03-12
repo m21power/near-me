@@ -11,6 +11,7 @@ import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
+import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/ThemeBloc/theme_bloc.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/firebase_options.dart';
@@ -49,6 +50,7 @@ class MainApp extends StatelessWidget {
         BlocProvider(create: (context) => sl<ProfileBloc>()),
         BlocProvider(create: (context) => sl<ChatBloc>()),
         BlocProvider(create: (context) => sl<ConversationBloc>()),
+        BlocProvider(create: (context) => sl<InternetBloc>())
       ],
       child: BlocBuilder<ThemeBloc, ThemeMode>(
         builder: (context, themeMode) {

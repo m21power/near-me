@@ -328,16 +328,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, Unit>> isLoggedIn() async {
-    if (await networkInfo.isConnected) {
-      var value =
-          await secureStorage.read(key: Constant.userIdSecureStorageKey);
-      if (value != null) {
-        return const Right(unit);
-      }
-
-      return const Left(ServerFailure(message: "User not logged in"));
-    } else {
-      return const Left(ServerFailure(message: "No internet connection"));
+    var value = await secureStorage.read(key: Constant.userIdSecureStorageKey);
+    if (value != null) {
+      return const Right(unit);
     }
+
+    return const Left(ServerFailure(message: "User not logged in"));
   }
 }

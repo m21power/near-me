@@ -27,7 +27,7 @@ class UserProfilePage extends StatefulWidget {
 }
 
 bool isConnected = true;
-bool SendConnection = true;
+bool sentConnection = true;
 
 class _UserProfilePageState extends State<UserProfilePage> {
   @override
@@ -68,13 +68,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 icon: FaIcon(FontAwesomeIcons.rocketchat,
                     color: Theme.of(context).colorScheme.onPrimary),
               ),
-            if (!isConnected && SendConnection)
+            if (!isConnected && sentConnection)
               IconButton(
                 onPressed: () {},
                 icon: FaIcon(FontAwesomeIcons.userCheck,
                     color: Theme.of(context).colorScheme.onPrimary),
               ),
-            if (!isConnected && !SendConnection)
+            if (!isConnected && !sentConnection)
               IconButton(
                 onPressed: () {},
                 icon: FaIcon(FontAwesomeIcons.userPlus,

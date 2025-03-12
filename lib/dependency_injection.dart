@@ -14,6 +14,7 @@ import 'package:near_me/features/chat/domain/usecases/is_online_usecase.dart';
 import 'package:near_me/features/chat/domain/usecases/send_message_usecase.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
+import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import 'package:near_me/features/profile/data/repository/profile_repo_impl.dart';
 import 'package:near_me/features/profile/domain/usecases/get_user_byId_usecase.dart';
 import 'package:near_me/features/Auth/domain/usecases/is_logged_in_usecase.dart';
@@ -38,6 +39,7 @@ import 'core/image_picker/image_picker.dart';
 import 'core/network/network_info.dart';
 import 'features/Auth/domain/usecases/email_validation_for_resetting_password_usecase.dart';
 import 'features/Auth/domain/usecases/log_out_usecase.dart';
+import 'features/location/domain/usecases/get_nearby_users_usecase.dart';
 import 'features/profile/domain/repository/profile_repository.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:http/http.dart' as http;
@@ -98,9 +100,11 @@ Future<void> init() async {
 
   //repository
   sl.registerLazySingleton<LocationRepository>(() => LocationRepoImpl(
-        channel: sl(),
-        secureStorage: sl(),
-      ));
+      channel: sl(),
+      secureStorage: sl(),
+      firestore: sl(),
+      client: sl(),
+      networkInfo: sl()));
 
   //usecases
   sl.registerLazySingleton<GetCurrentLocationUsecase>(
@@ -112,13 +116,16 @@ Future<void> init() async {
   sl.registerLazySingleton<LocationDisabledUsecase>(
     () => LocationDisabledUsecase(locationRepository: sl()),
   );
+  sl.registerLazySingleton<GetNearbyUsersUsecase>(
+    () => GetNearbyUsersUsecase(locationRepository: sl()),
+  );
   //bloc
   sl.registerFactory<LocationBloc>(
     () => LocationBloc(
-      getCurrentLocationUsecase: sl(),
-      emitCurrentLocationUsecase: sl(),
-      locationDisabledUsecase: sl(),
-    ),
+        getCurrentLocationUsecase: sl(),
+        emitCurrentLocationUsecase: sl(),
+        locationDisabledUsecase: sl(),
+        getNearbyUsersUsecase: sl()),
   );
 
   //profile
@@ -179,4 +186,8 @@ Future<void> init() async {
         getMessageUsecase: sl(),
         sendMessageUsecase: sl(),
       ));
+
+  //Internet bloc
+
+  sl.registerFactory<InternetBloc>(() => InternetBloc(networkInfo: sl()));
 }

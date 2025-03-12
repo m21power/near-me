@@ -9,6 +9,7 @@ import 'package:near_me/features/chat/presentation/pages/chat_page.dart';
 import 'package:near_me/features/home/presentation/widgets/custom_drawer.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/features/location/presentation/pages/map_page.dart';
+import 'package:near_me/features/post/presentation/pages/post_page.dart';
 
 class TopBar extends StatefulWidget {
   @override
@@ -174,41 +175,7 @@ class _TopBarState extends State<TopBar> {
             ),
             body: Container(
               child: TabBarView(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.telegram,
-                            color: Colors.blue,
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text("@CNCSMEMES")
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Image.asset(
-                        "assets/meme.png",
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        "Coming Soon ...",
-                        style: Theme.of(context).textTheme.displayLarge,
-                      )
-                    ],
-                  ),
-                  ChatPage(),
-                  MapPage()
-                ],
+                children: [PostPage(), ChatPage(), MapPage()],
               ),
             ),
           ),
