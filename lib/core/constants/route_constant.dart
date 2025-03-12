@@ -4,4 +4,6 @@ class RouteConstant {
   static const String welcomePageRoute = '/';
   static const String verifyEmailPageRoute = '/verifyEmail';
   static const String homePageRoute = '/home';
+  static const String forgotPasswordPageRoute = '/forgotPassword';
+  static const String topBarPageRoute = '/topBar';
 }

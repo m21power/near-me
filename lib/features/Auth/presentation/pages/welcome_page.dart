@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:near_me/core/service/email_service.dart';
 
 import '../../../../core/constants/route_constant.dart';
 
@@ -31,9 +30,7 @@ class WelcomePage extends StatelessWidget {
                 width: width * 0.7,
                 child: ElevatedButton(
                   onPressed: () {
-                    // context.goNamed(RouteConstant.loginPageRoute);
-                    EmailService()
-                        .sendOtpEmail("mesaylema21@gmail.com", "1235");
+                    context.goNamed(RouteConstant.loginPageRoute);
                   },
                   child: Text("Login"),
                 ),
