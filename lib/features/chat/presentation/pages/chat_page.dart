@@ -15,72 +15,24 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  List<ChatEntities> chatEntities = [
-    // ChatEntities(
-    //     chatId: "dafaf",
-    //     lastMessage: "love you too",
-    //     lastMessageTime: Timestamp.now(),
-    //     recieverId: 'JIuJLShL8jSPrcmXjnJYMqo8e1z1',
-    //     senderName: 'Mesay',
-    //     gender: 'male',
-    //     senderId: 'uAbcTJRavsgmPYNlUpKIYh9kV4B2',
-    //     senderProfilePic:
-    //         'https://res.cloudinary.com/dl6vahv6t/image/upload/v1740981424/JIuJLShL8jSPrcmXjnJYMqo8e1z1/profileImage.jpg',
-    //     unreadCount: 3),
-    // ChatEntities(
-    //     chatId: "dafaf",
-    //     lastMessage: "wtf is this",
-    //     lastMessageTime: Timestamp.now(),
-    //     recieverId: 'uAbcTJRavsgmPYNlUpKIYh9kV4B2',
-    //     senderName: 'Abel',
-    //     senderId: 'JIuJLShL8jSPrcmXjnJYMqo8e1z1',
-    //     gender: 'male',
-    //     senderProfilePic:
-    //         "https://res.cloudinary.com/dl6vahv6t/image/upload/v1741457455/uAbcTJRavsgmPYNlUpKIYh9kV4B2/profileImage.jpg",
-    //     unreadCount: 1)
-  ];
-
-  // late Timer _timer;
+  List<ChatEntities> chatEntities = [];
+  Map<String, UserStatus> userStatus = {};
   bool? amUser1;
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _startOnlineStatusUpdater();
-  // }
+  @override
+  void initState() {
+    super.initState();
+    // context.read<ChatBloc>().add(GetConnectedUsersId());
+  }
 
-  // void _startOnlineStatusUpdater() {
-  //   final chatBloc = context.read<ChatBloc>();
-
-  //   // Initial call
-  //   _updateOnlineStatus(chatBloc);
-
-  //   // Run every 1 minute
-  //   _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-  //     _updateOnlineStatus(chatBloc);
-  //   });
-  // }
-
-  // void _updateOnlineStatus(ChatBloc chatBloc) {
-  //   for (var chat in chatEntities) {
-  //     if (!isTheUserReciever!) {
-  //       chatBloc.add(IsOnlineEvent(chat.receiverId));
-  //     } else {
-  //       chatBloc.add(IsOnlineEvent(chat.senderId));
-  //     }
-  //   }
-  // }
-
-  // @override
-  // void dispose() {
-  //   _timer.cancel();
-  //   super.dispose();
-  // }
+  Future<void> _onRefresh() async {
+    context.read<ChatBloc>().add(GetChatEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
-        // print("state: $state");
+        print("state: $state");
         if (state is GetChatEntitiesState) {
           chatEntities = state.chatEntites;
           if (chatEntities.isNotEmpty) {
@@ -98,23 +50,34 @@ class _ChatPageState extends State<ChatPage> {
         if (chatEntities.isEmpty) {
           return const Center(child: Text("No chats"));
         }
-        return ListView.builder(
-          itemCount: chatEntities.length,
-          itemBuilder: (context, index) {
-            final chat = chatEntities[index];
-            // final isOnline = (state is IsOnlineState &&
-            //         state.onlineStatus.containsKey(
-            //             !isTheUserReciever! ? chat.receiverId : chat.senderId))
-            //     ? state.onlineStatus[!isTheUserReciever!
-            //             ? chat.receiverId
-            //             : chat.senderId] ??
-            //         false
-            //     : false;
+        return BlocConsumer<ConversationBloc, ConversationState>(
+          listener: (context, convState) {
+            if (convState is GetUserStatusSuccessState) {
+              userStatus = convState.onlineStatus;
+            }
+          },
+          builder: (context, convState) {
+            print(convState);
+            return RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: ListView.builder(
+                itemCount: chatEntities.length,
+                itemBuilder: (context, index) {
+                  final chat = chatEntities[index];
 
-            return ChatListItem(
-              chatEntity: chat,
-              isOnline: true,
-              amUser1: amUser1!,
+                  return ChatListItem(
+                    chatEntity: chat,
+                    isOnline: userStatus.isNotEmpty
+                        ? (amUser1 == true
+                            ? userStatus[chatEntities[index].user2Id]?.online ??
+                                false
+                            : userStatus[chatEntities[index].user1Id]?.online ??
+                                false)
+                        : false,
+                    amUser1: amUser1!,
+                  );
+                },
+              ),
             );
           },
         );
@@ -140,13 +103,12 @@ class ChatListItem extends StatelessWidget {
       onTap: () {
         amUser1
             ? context.read<ConversationBloc>().add(GetMessageEvent(
-                chatEntity.user2Id,
-                lastMessage: null,
-                limit: 20))
+                  chatEntity.user2Id,
+                ))
             : context.read<ConversationBloc>().add(GetMessageEvent(
-                chatEntity.user1Id,
-                lastMessage: null,
-                limit: 20));
+                  chatEntity.user1Id,
+                ));
+
         Navigator.push(
             context,
             MaterialPageRoute(

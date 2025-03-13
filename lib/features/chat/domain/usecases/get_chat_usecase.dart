@@ -4,7 +4,7 @@ import 'package:near_me/features/chat/domain/repository/chat_repository.dart';
 class GetChatUsecase {
   final ChatRepository chatRepository;
   GetChatUsecase({required this.chatRepository});
-  Stream<List<ChatEntities>> call(String userId) {
-    return chatRepository.getChats(userId);
+  Stream<List<ChatEntities>> call() {
+    return chatRepository.getChats();
   }
 }

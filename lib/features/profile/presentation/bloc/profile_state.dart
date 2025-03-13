@@ -36,3 +36,35 @@ final class UpdateProfileFailedState extends ProfileState {
   @override
   List<Object> get props => [message];
 }
+
+final class UpdatingState extends ProfileState {}
+
+final class CheckConnectionSuccessState extends ProfileState {
+  final ConnectionReqModel connectionReqModel;
+  CheckConnectionSuccessState(this.connectionReqModel);
+}
+
+final class ProfileFailureState extends ProfileState {
+  final String message;
+  ProfileFailureState(this.message);
+  @override
+  List<Object> get props => [message];
+}
+
+final class SendConReqSuccessState extends ProfileState {}
+
+final class SendConReqFailuerState extends ProfileState {
+  final String message;
+  SendConReqFailuerState(this.message);
+  @override
+  List<Object> get props => [message];
+}
+
+final class AcceptConReqSuccessState extends ProfileState {}
+
+final class AcceptConReqFailureState extends ProfileState {
+  final String message;
+  AcceptConReqFailureState(this.message);
+  @override
+  List<Object> get props => [message];
+}

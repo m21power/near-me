@@ -49,6 +49,7 @@ class UserConstant {
         isEmailVerified: true,
         password: '',
         bio: u['bio'] ?? '',
+        fcmToken: u['fcmToken'] ?? '',
         gender: u['gender'] ?? '');
   }
 

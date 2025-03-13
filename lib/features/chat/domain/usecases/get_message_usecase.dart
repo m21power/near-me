@@ -7,8 +7,7 @@ import 'package:near_me/features/chat/domain/repository/chat_repository.dart';
 class GetMessageUsecase {
   final ChatRepository chatRepository;
   GetMessageUsecase({required this.chatRepository});
-  Future<Either<Failure, List<BubbleModel>>> call(
-      String recieverId, DocumentSnapshot? lastMessage, int limit) {
-    return chatRepository.getMessage(recieverId, lastMessage, limit);
+  Stream<List<BubbleModel>> call(String recieverId) {
+    return chatRepository.getMessage(recieverId);
   }
 }

@@ -6,10 +6,8 @@ sealed class ConversationEvent {
 
 final class GetMessageEvent extends ConversationEvent {
   final String receiverId;
-  final DocumentSnapshot? lastMessage; // For pagination
-  final int limit;
 
-  const GetMessageEvent(this.receiverId, {this.lastMessage, this.limit = 20});
+  const GetMessageEvent(this.receiverId);
 }
 
 final class SendMessageEvent extends ConversationEvent {
@@ -18,3 +16,15 @@ final class SendMessageEvent extends ConversationEvent {
 
   const SendMessageEvent(this.message, this.receiverId);
 }
+
+final class MarkMessageEvent extends ConversationEvent {
+  final String userId;
+  const MarkMessageEvent(this.userId);
+}
+
+final class GetStatusEvent extends ConversationEvent {
+  List<String> ids;
+  GetStatusEvent(this.ids);
+}
+
+final class GetConnectedUsersId extends ConversationEvent {}

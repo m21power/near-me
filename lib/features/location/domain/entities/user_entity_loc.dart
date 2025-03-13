@@ -15,6 +15,7 @@ class UserLocEntity {
   String password;
   String bio;
   String gender;
+  String fcmToken;
 
   UserLocEntity(
       {required this.userId,
@@ -29,6 +30,7 @@ class UserLocEntity {
       required this.isEmailVerified,
       required this.password,
       required this.bio,
+      required this.fcmToken,
       required this.gender});
 
   Map<String, dynamic> toMap() {
@@ -46,6 +48,7 @@ class UserLocEntity {
       'password': password,
       'bio': bio,
       'gender': gender,
+      'fcmToken': fcmToken
     };
   }
 
@@ -63,6 +66,7 @@ class UserLocEntity {
       isEmailVerified: map['isEmailVerified'] ?? true,
       password: map['password'] ?? '',
       bio: map['bio'] ?? '',
+      fcmToken: map['fcmToken'] ?? '',
       gender: map['gender'] ?? '',
     );
   }

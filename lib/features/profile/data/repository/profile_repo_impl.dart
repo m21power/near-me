@@ -8,10 +8,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:near_me/core/constants/api_constant.dart';
 import 'package:near_me/core/constants/constant.dart';
+import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/error/failure.dart';
 import 'package:near_me/core/network/network_info.dart';
 import 'package:near_me/core/util/public_id_from_url.dart';
 import 'package:near_me/features/Auth/domain/entities/user_entities.dart';
+import 'package:near_me/features/profile/domain/entities/profile_entity.dart';
 import 'package:near_me/features/profile/domain/repository/profile_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -197,6 +199,90 @@ class ProfileRepoImpl extends ProfileRepository {
     } catch (e) {
       print(e);
       return false;
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> sendConnectionRequest(String to) async {
+    if (await networkInfo.isConnected) {
+      try {
+        var userId = UserConstant().getUserId();
+        await firestore
+            .collection('users')
+            .doc(to)
+            .collection('connection_request')
+            .add({
+          "from": userId,
+          'to': to,
+          'status': "pending",
+        });
+        return const Right(unit);
+      } catch (e) {
+        return Left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(ServerFailure(message: "No internet connection"));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ConnectionReqModel>> checkConnectionRequest(
+      String receiverId) async {
+    if (await networkInfo.isConnected) {
+      var userId = UserConstant().getUserId();
+      var ids = [receiverId, userId];
+      ids.sort();
+      var conId = ids.join('_');
+      var data = await firestore.collection('connections').doc(conId).get();
+      if (data.exists) {
+        var ans = ConnectionReqModel(to: '', from: '', status: 'accepted');
+        return Right(ans);
+      }
+      // if they are not connected let's check if the request was sent
+      var myRequest = await firestore
+          .collection('users')
+          .doc(receiverId)
+          .collection('connection_request')
+          .where('from', isEqualTo: userId)
+          .get();
+      if (myRequest.docs.isNotEmpty) {
+        return Right(ConnectionReqModel(
+            from: userId!, to: receiverId, status: 'pending'));
+      }
+      var hisRequest = await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('connection_request')
+          .where('from', isEqualTo: receiverId)
+          .get();
+      if (hisRequest.docs.isNotEmpty) {
+        return Right(ConnectionReqModel(
+            from: receiverId, to: userId!, status: 'pending'));
+      }
+      return const Left(ServerFailure(message: "They are not connected"));
+    } else {
+      return const Left(ServerFailure(message: "No Internet Connection"));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acceptRequest(String userId) async {
+    if (await networkInfo.isConnected) {
+      var myId = UserConstant().getUserId();
+      await firestore
+          .collection('users')
+          .doc(myId)
+          .collection('connection_request')
+          .where('from', isEqualTo: userId)
+          .get()
+          .then((querySnapshot) {
+        for (var doc in querySnapshot.docs) {
+          doc.reference.update({'status': 'accepted'});
+        }
+      });
+      return const Right(unit);
+    } else {
+      return const Left(ServerFailure(message: 'No Internet Connection'));
     }
   }
 }

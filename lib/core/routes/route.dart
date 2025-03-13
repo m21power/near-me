@@ -8,10 +8,12 @@ import 'package:near_me/features/Auth/presentation/pages/forgot_passowrd_page.da
 import 'package:near_me/features/Auth/presentation/pages/sign_up_page.dart';
 import 'package:near_me/features/Auth/presentation/pages/verify_email_page.dart';
 import 'package:near_me/features/Auth/presentation/pages/welcome_page.dart';
+import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
 import 'package:near_me/features/home/presentation/home.dart';
 import 'package:near_me/features/home/presentation/pages/top_bar.dart';
 
 import '../../features/Auth/presentation/pages/login_page.dart';
+import '../../features/chat/presentation/bloc/chat_bloc.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -26,6 +28,8 @@ final GoRouter router = GoRouter(
         return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
           if (state is AuthLoggedInSuccessState) {
             UserConstant().setUser();
+            context.read<ChatBloc>().add(GetChatEvent());
+            context.read<ConversationBloc>().add(GetConnectedUsersId());
             return TopBar();
           } else {
             return WelcomePage();

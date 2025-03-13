@@ -8,13 +8,14 @@ class BubbleModel {
   final Timestamp timestamp;
   final bool seen;
   final String senderId;
-  final DocumentSnapshot? documentSnapshot;
-  BubbleModel(
-      {required this.message,
-      required this.seen,
-      required this.timestamp,
-      required this.senderId,
-      required this.documentSnapshot});
+  // final DocumentSnapshot? documentSnapshot;
+  BubbleModel({
+    required this.message,
+    required this.seen,
+    required this.timestamp,
+    required this.senderId,
+    // required this.documentSnapshot
+  });
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -39,7 +40,7 @@ class BubbleModel {
       senderId: data['senderId'] as String,
       timestamp: data['timestamp'] as Timestamp,
       seen: data['seen'] as bool,
-      documentSnapshot: doc, // Store the snapshot itself
+      // documentSnapshot: doc, // Store the snapshot itself
     );
   }
 
@@ -47,6 +48,34 @@ class BubbleModel {
 
   // factory BubbleModel.fromJson(String source) =>
   //     BubbleModel.fromMap(json.decode(source) as Map<String, dynamic>);
+}
+
+class UserStatus {
+  final bool online;
+  final Timestamp lastSeen;
+  UserStatus({
+    required this.online,
+    required this.lastSeen,
+  });
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'online': online,
+      'lastSeen': lastSeen.toDate().toIso8601String(),
+    };
+  }
+
+  factory UserStatus.fromMap(Map<String, dynamic> map) {
+    return UserStatus(
+      online: map['online'] as bool,
+      lastSeen: map['lastSeen'] as Timestamp,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory UserStatus.fromJson(String source) =>
+      UserStatus.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
 class ChatEntities {

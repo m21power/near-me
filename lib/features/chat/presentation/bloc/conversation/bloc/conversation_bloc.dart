@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/features/chat/domain/usecases/get_connected_users_id_usecase.dart';
 import 'package:near_me/features/chat/domain/usecases/get_message_usecase.dart';
+import 'package:near_me/features/chat/domain/usecases/get_users_status.dart';
+import 'package:near_me/features/chat/domain/usecases/mark_message_usecase.dart';
 import 'package:near_me/features/chat/domain/usecases/send_message_usecase.dart';
 
 import '../../../../domain/entities/chat_entities.dart';
@@ -13,55 +18,19 @@ part 'conversation_state.dart';
 class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   final GetMessageUsecase getMessageUsecase;
   final SendMessageUsecase sendMessageUsecase;
+  final MarkMessageUsecase markMessageUsecase;
+  final GetUsersStatusUsecase getUsersStatusUsecase;
+  final GetConnectedUsersIdUsecase getConnectedUsersIdUsecase;
+  StreamSubscription? messageSubscription;
+  StreamSubscription<Map<String, dynamic>>? statusSubscription;
 
   ConversationBloc({
+    required this.getUsersStatusUsecase,
+    required this.getConnectedUsersIdUsecase,
     required this.getMessageUsecase,
     required this.sendMessageUsecase,
+    required this.markMessageUsecase,
   }) : super(ConversationInitial()) {
-    on<GetMessageEvent>((event, emit) async {
-      var result = await getMessageUsecase(
-        event.receiverId,
-        event.lastMessage, // Pagination
-        event.limit,
-      );
-
-      result.fold(
-        (failure) => emit(GetMessageFailureState(failure.message)),
-        (newMessages) {
-          if (event.lastMessage == null) {
-            // If lastMessage is null, it means this is a fresh fetch, so clear old messages
-            final hasMore = newMessages.length == event.limit;
-            emit(GetMessageSuccessState(
-              messages: newMessages,
-              lastMessage: newMessages.isNotEmpty
-                  ? newMessages.last.documentSnapshot
-                  : null,
-              hasMore: hasMore,
-            ));
-          } else if (state is GetMessageSuccessState) {
-            final oldMessages = (state as GetMessageSuccessState).messages;
-            final hasMore = newMessages.length == event.limit;
-            emit(GetMessageSuccessState(
-              messages: [...oldMessages, ...newMessages], // Append new messages
-              lastMessage: newMessages.isNotEmpty
-                  ? newMessages.last.documentSnapshot
-                  : event.lastMessage,
-              hasMore: hasMore,
-            ));
-          } else if (state is! SendMessageSuccessState) {
-            final hasMore = newMessages.length == event.limit;
-            emit(GetMessageSuccessState(
-              messages: newMessages,
-              lastMessage: newMessages.isNotEmpty
-                  ? newMessages.last.documentSnapshot
-                  : null,
-              hasMore: hasMore,
-            ));
-          }
-        },
-      );
-    });
-
     on<SendMessageEvent>((event, emit) async {
       var result = await sendMessageUsecase(
         message: event.message,
@@ -70,13 +39,61 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
 
       result.fold(
         (failure) => emit(SendMessageFailureState(failure.message)),
-        (sentMessage) => emit(SendMessageSuccessState(BubbleModel(
-            message: event.message,
-            seen: false,
-            timestamp: Timestamp.now(),
-            senderId: UserConstant().getUserId()!,
-            documentSnapshot: null))),
+        (sentMessage) => emit(SendMessageSuccessState()),
       );
     });
+    on<GetMessageEvent>(
+      (event, emit) async {
+        await messageSubscription?.cancel();
+
+        messageSubscription = getMessageUsecase(event.receiverId).listen(
+          (value) async {
+            await Future.delayed(Duration.zero); // Ensure async execution
+            emit(GetMessageSuccessState(messages: value));
+          },
+          onError: (error) async {
+            await Future.delayed(Duration.zero);
+            emit(MessageErrorState(error.toString()));
+          },
+        );
+        await messageSubscription
+            ?.asFuture(); // Keeps handler alive until stream ends
+      },
+    );
+    on<MarkMessageEvent>(
+      (event, emit) async {
+        await markMessageUsecase(event.userId);
+      },
+    );
+    on<GetStatusEvent>((event, emit) async {
+      await statusSubscription?.cancel();
+      statusSubscription = getUsersStatusUsecase(event.ids).listen(
+        (value) async {
+          await Future.delayed(Duration.zero); // Ensure async execution
+          emit(GetUserStatusSuccessState(value));
+        },
+        onError: (error) async {
+          await Future.delayed(Duration.zero);
+          emit(GetUserStatusFailureState(error.toString()));
+        },
+      );
+
+      await statusSubscription
+          ?.asFuture(); // Keeps handler alive until stream ends
+    });
+    on<GetConnectedUsersId>(
+      (event, emit) async {
+        var result = await getConnectedUsersIdUsecase();
+        result.fold((l) => emit(GetConnectedUsersIdFailureState(l.message)),
+            (r) => add(GetStatusEvent(r)));
+      },
+    );
+  }
+  @override
+  Future<void> close() {
+    statusSubscription?.cancel();
+
+    messageSubscription?.cancel();
+    return super.close();
   }
 }

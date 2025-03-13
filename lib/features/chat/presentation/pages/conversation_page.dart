@@ -31,67 +31,21 @@ class _ConversationPageState extends State<ConversationPage> {
   bool allMessageFetched = false;
 
   @override
-  void initState() {
-    super.initState();
-
-    // Initial message fetch
-    context.read<ConversationBloc>().add(GetMessageEvent(
-          widget.amUser1
-              ? widget.chatEntity.user2Id
-              : widget.chatEntity.user1Id,
-          lastMessage: null, // Initial fetch, no pagination required yet
-          limit: 20, // Limit for pagination
-        ));
-
-    // Add scroll listener to detect when the user reaches the bottom
-    scrollController.addListener(_scrollListener);
-  }
-
-  @override
-  void dispose() {
-    scrollController.dispose();
-    super.dispose();
-  }
-
-  // Check if the user has reached the bottom of the list
-  void _scrollListener() {
-    if (scrollController.position.pixels ==
-            scrollController.position.maxScrollExtent &&
-        !isLoading) {
-      // User is at the bottom and no loading is happening, load more messages
-      context.read<ConversationBloc>().add(GetMessageEvent(
-            widget.amUser1
-                ? widget.chatEntity.user2Id
-                : widget.chatEntity.user1Id,
-            lastMessage:
-                bubbles.isNotEmpty ? bubbles.last.documentSnapshot : null,
-            limit: 20, // Pagination limit
-          ));
-      if (!allMessageFetched) {
-        setState(() {
-          isLoading =
-              true; // Set loading to true when new messages are being fetched
-        });
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: BlocConsumer<ConversationBloc, ConversationState>(
         listener: (context, state) {
           print('state: $state');
-          if (state is SendMessageSuccessState) {
-            messageController.clear();
-            scrollController.animateTo(
-              scrollController.position.minScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-          }
+          if (state is SendMessageSuccessState) {}
 
           if (state is GetMessageSuccessState) {
+            widget.amUser1
+                ? context
+                    .read<ConversationBloc>()
+                    .add(MarkMessageEvent(widget.chatEntity.user2Id))
+                : context
+                    .read<ConversationBloc>()
+                    .add(MarkMessageEvent(widget.chatEntity.user1Id));
             setState(() {
               isLoading = false; // Stop loading when new messages are fetched
             });
@@ -100,20 +54,6 @@ class _ConversationPageState extends State<ConversationPage> {
         builder: (context, state) {
           if (state is GetMessageSuccessState) {
             bubbles = state.messages;
-            if (!state.hasMore) {
-              allMessageFetched = true;
-            }
-          }
-          if (state is SendMessageSuccessState) {
-            bubbles.insert(0, state.sentMessage);
-            context.read<ConversationBloc>().add(GetMessageEvent(
-                  widget.amUser1
-                      ? widget.chatEntity.user2Id
-                      : widget.chatEntity.user1Id,
-                  lastMessage:
-                      null, // Initial fetch, no pagination required yet
-                  limit: 20, // Limit for pagination
-                ));
           }
 
           return Scaffold(
@@ -247,17 +187,17 @@ class _ConversationPageState extends State<ConversationPage> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.send, color: Colors.teal),
-            onPressed: () {
-              final receiverId = widget.amUser1
-                  ? widget.chatEntity.user2Id
-                  : widget.chatEntity.user1Id;
-              context
-                  .read<ConversationBloc>()
-                  .add(SendMessageEvent(messageController.text, receiverId));
-              messageController.clear();
-            },
-          ),
+              icon: const Icon(Icons.send, color: Colors.teal),
+              onPressed: () {
+                if (messageController.text.trim().isNotEmpty) {
+                  final receiverId = widget.amUser1
+                      ? widget.chatEntity.user2Id
+                      : widget.chatEntity.user1Id;
+                  context.read<ConversationBloc>().add(
+                      SendMessageEvent(messageController.text, receiverId));
+                  messageController.clear();
+                }
+              }),
         ],
       ),
     );

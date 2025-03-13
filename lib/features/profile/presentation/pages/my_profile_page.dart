@@ -28,150 +28,162 @@ class _MyProfilePageState extends State<MyProfilePage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(),
-        body: BlocConsumer<ProfileBloc, ProfileState>(
-          listener: (context, state) {
-            print("state is $state");
-            if (state is UpdateProfileSuccessState) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Profile updated successfully"),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            } else if (state is UpdateProfileFailedState) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
+        body: RefreshIndicator(
+          onRefresh: () async {
+            setState(() {});
+            return;
           },
-          builder: (context, state) {
-            print("state is $state");
-            var user =
-                sl<SharedPreferences>().getString(Constant.userPreferenceKey);
-            var userModel = jsonDecode(user!);
-            print(userModel);
-            if (state is ProfileInitial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return Column(
-              children: [
-                // Top Section (Background + Profile Image)
-                profileImageAndBack(userModel),
-                // Scrollable Content
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: Column(
-                      children: [
-                        // User Info
-                        Text(userModel['name'] ?? "anonymous",
-                            style: const TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 5),
-                        Text(
-                            userModel['university'] ?? "Add University/college",
-                            style: const TextStyle(fontSize: 16)),
-                        Text(userModel['major'] ?? "Add Major",
-                            style: const TextStyle(fontSize: 16)),
+          child: BlocConsumer<ProfileBloc, ProfileState>(
+            listener: (context, state) {
+              print("state is $state");
+              if (state is UpdateProfileSuccessState) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Profile updated successfully"),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else if (state is UpdateProfileFailedState) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              print("state is $state");
+              var user =
+                  sl<SharedPreferences>().getString(Constant.userPreferenceKey);
+              var userModel = jsonDecode(user!);
+              if (state is UpdatingState) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return Column(
+                children: [
+                  // Top Section (Background + Profile Image)
+                  profileImageAndBack(userModel),
+                  // Scrollable Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Column(
+                        children: [
+                          // User Info
+                          Text(userModel['name'] ?? "anonymous",
+                              style: const TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 5),
+                          Text(
+                              userModel['university'] == ''
+                                  ? "Add University/college"
+                                  : userModel['university'],
+                              style: Theme.of(context).textTheme.bodyLarge),
+                          Text(
+                              userModel['major'] == ''
+                                  ? "Add Major"
+                                  : userModel['major'],
+                              style: Theme.of(context).textTheme.bodyLarge),
 
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
 
-                        // // Bio
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Text(
-                            userModel['bio'] == ""
-                                ? "No bio available"
-                                : userModel['bio'],
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 14),
+                          // // Bio
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              userModel['bio'] == ""
+                                  ? "No bio available"
+                                  : userModel['bio'],
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 14),
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        // Edit Profile Button
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        EditProfilePage(user: userModel)));
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 30, vertical: 12),
-                          ),
-                          child: const Text("Edit My Profile",
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white)),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // User Posts Section
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text("My Posts",
+                          // Edit Profile Button
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          EditProfilePage(user: userModel)));
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 30, vertical: 12),
+                            ),
+                            child: const Text("Edit My Profile",
                                 style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                                    fontSize: 16, color: Colors.white)),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 20),
 
-                        const Center(child: Text("No posts available")),
+                          // User Posts Section
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text("My Posts",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          ),
 
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
+                          const SizedBox(height: 10),
 
-                // Save Button (Only appears if an image is changed)
-                if (isImageChanged)
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        isImageChanged = false;
-                        context.read<ProfileBloc>().add(
-                              UpdateProfileEvent(
-                                profileImage:
-                                    newProfileImage ?? userModel['photoUrl'],
-                                backgroundImage: newBackgroundImage ??
-                                    userModel['backgroundUrl'],
-                                fullName: userModel['name'],
-                                bio: userModel['bio'],
-                                university: userModel['University'],
-                                major: userModel['Major'],
-                              ),
-                            );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 40, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                          const Center(child: Text("No posts available")),
+
+                          const SizedBox(height: 20),
+                        ],
                       ),
-                      child: const Text("Save Changes",
-                          style: TextStyle(fontSize: 16, color: Colors.white)),
                     ),
                   ),
-              ],
-            );
-          },
+
+                  // Save Button (Only appears if an image is changed)
+                  if (isImageChanged)
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          isImageChanged = false;
+                          context.read<ProfileBloc>().add(
+                                UpdateProfileEvent(
+                                  profileImage:
+                                      newProfileImage ?? userModel['photoUrl'],
+                                  backgroundImage: newBackgroundImage ??
+                                      userModel['backgroundUrl'],
+                                  fullName: userModel['name'],
+                                  bio: userModel['bio'],
+                                  university: userModel['University'],
+                                  major: userModel['Major'],
+                                ),
+                              );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text("Save Changes",
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.white)),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

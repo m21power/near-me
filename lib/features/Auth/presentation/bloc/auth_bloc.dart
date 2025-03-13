@@ -143,7 +143,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             emit(LogOutFailedState(l.message));
           },
           (r) {
-            // emit(LogOutSuccessState());
+            emit(LogOutSuccessState());
           },
         );
       },

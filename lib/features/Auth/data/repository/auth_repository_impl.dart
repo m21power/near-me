@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/core/constants/api_constant.dart';
 import 'package:near_me/core/constants/constant.dart';
@@ -24,8 +25,15 @@ class AuthRepositoryImpl implements AuthRepository {
   final NetworkInfo networkInfo;
   final FirebaseAppCheck firebaseAppCheck;
   final FlutterSecureStorage secureStorage;
-  AuthRepositoryImpl(this.firestore, this.firebaseAuth, this.sharedPreferences,
-      this.networkInfo, this.firebaseAppCheck, this.secureStorage);
+  final FirebaseMessaging firebaseMessaging;
+  AuthRepositoryImpl(
+      this.firestore,
+      this.firebaseAuth,
+      this.sharedPreferences,
+      this.networkInfo,
+      this.firebaseAppCheck,
+      this.secureStorage,
+      this.firebaseMessaging);
   @override
   Future<Either<Failure, Unit>> requestOtp(String email) async {
     if (await networkInfo.isConnected) {
@@ -103,19 +111,21 @@ class AuthRepositoryImpl implements AuthRepository {
         UserCredential userCredential = await firebaseAuth
             .createUserWithEmailAndPassword(email: email, password: password);
         var uid = userCredential.user!.uid;
+        var token = await firebaseMessaging.getToken();
         var value = UserModel(
-          id: uid,
-          email: email,
-          name: name,
-          photoUrl: "",
-          backgroundUrl: "",
-          isEmailVerified: true,
-          password: password,
-          bio: "",
-          university: "",
-          major: "",
-          gender: gender,
-        ).toMap();
+                id: uid,
+                email: email,
+                name: name,
+                photoUrl: "",
+                backgroundUrl: "",
+                isEmailVerified: true,
+                password: password,
+                bio: "",
+                university: "",
+                major: "",
+                gender: gender,
+                fcmToken: token ?? '')
+            .toMap();
         await firestore.collection("users").doc(uid).set(value);
         secureStorage.write(key: Constant.userIdSecureStorageKey, value: uid);
         secureStorage.write(

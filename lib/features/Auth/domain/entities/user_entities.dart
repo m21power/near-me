@@ -12,6 +12,7 @@ class UserModel {
   final String gender;
   final String university;
   final String major;
+  final String fcmToken;
   UserModel(
       {required this.id,
       required this.email,
@@ -23,6 +24,7 @@ class UserModel {
       required this.isEmailVerified,
       required this.password,
       required this.bio,
+      required this.fcmToken,
       required this.gender});
 
   Map<String, dynamic> toMap() {
@@ -37,7 +39,8 @@ class UserModel {
       'bio': bio ?? '',
       'gender': gender,
       'university': university,
-      'major': major
+      'major': major,
+      'fcmToken': fcmToken
     };
   }
 
@@ -53,6 +56,7 @@ class UserModel {
         bio: map['bio'] ?? "",
         gender: map['gender'] as String,
         university: map['university'] ?? "",
+        fcmToken: map['fcmToken'] ?? '',
         major: map['major'] ?? "");
   }
 

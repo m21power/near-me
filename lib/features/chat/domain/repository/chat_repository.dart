@@ -6,8 +6,9 @@ import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 abstract class ChatRepository {
   Future<Either<Failure, Unit>> sendMessage(
       {required String message, required String receiverId});
-  Stream<List<ChatEntities>> getChats(String userId);
-  Future<bool> isOnline(String userId);
-  Future<Either<Failure, List<BubbleModel>>> getMessage(
-      String receiverId, DocumentSnapshot? lastMessage, int limit);
+  Stream<List<ChatEntities>> getChats();
+  Stream<List<BubbleModel>> getMessage(String receiverId);
+  Future<Unit> markMessageAsSeen(String user2Id);
+  Stream<Map<String, UserStatus>> getUsersStatus(List<String> ids);
+  Future<Either<Failure, List<String>>> getConnectedUsersId();
 }

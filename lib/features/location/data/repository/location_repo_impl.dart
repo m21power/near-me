@@ -72,8 +72,8 @@ class LocationRepoImpl implements LocationRepository {
 
     channel.sink.add(jsonEncode({
       'userId': userId,
-      "latitude": position.latitude,
-      "longitude": position.longitude
+      "latitude": 9.031859697470294,
+      "longitude": 38.763446899832886
     }));
     return unit;
   }
@@ -116,16 +116,16 @@ class LocationRepoImpl implements LocationRepository {
                 .doc(user.userId)
                 .get()
                 .then((value) {
-              user.name = value['name'];
-              user.photoUrl = value['photoUrl'];
-              user.backgroundUrl = value['backgroundUrl'];
-              user.bio = value['bio'];
+              user.name = value['name'] ?? '';
+              user.photoUrl = value['photoUrl'] ?? '';
+              user.backgroundUrl = value['backgroundUrl'] ?? '';
+              user.bio = value['bio'] ?? '';
               user.password = '';
-              user.isEmailVerified = value['isEmailVerified'];
-              user.major = value['major'];
-              user.university = value['university'];
-              user.email = value['email'];
-              user.gender = value['gender'];
+              user.isEmailVerified = true;
+              user.major = value['major'] ?? '';
+              user.university = value['university'] ?? '';
+              user.email = value['email'] ?? '';
+              user.gender = value['gender'] ?? '';
             });
           }
           return Future.value(Right(users));

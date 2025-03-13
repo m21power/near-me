@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart' as get_it;
 import 'package:image_picker/image_picker.dart';
@@ -9,13 +11,21 @@ import 'package:near_me/features/Auth/domain/repository/auth_repository.dart';
 import 'package:near_me/features/chat/data/repository/chat_repository_impl.dart';
 import 'package:near_me/features/chat/domain/repository/chat_repository.dart';
 import 'package:near_me/features/chat/domain/usecases/get_chat_usecase.dart';
+import 'package:near_me/features/chat/domain/usecases/get_connected_users_id_usecase.dart';
 import 'package:near_me/features/chat/domain/usecases/get_message_usecase.dart';
-import 'package:near_me/features/chat/domain/usecases/is_online_usecase.dart';
+import 'package:near_me/features/chat/domain/usecases/get_users_status.dart';
+import 'package:near_me/features/chat/domain/usecases/mark_message_usecase.dart';
 import 'package:near_me/features/chat/domain/usecases/send_message_usecase.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
+import 'package:near_me/features/home/data/repository/home_repo_impl.dart';
+import 'package:near_me/features/home/domain/repository/home_repository.dart';
+import 'package:near_me/features/home/domain/usecases/seach_user_usecase.dart';
+import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import 'package:near_me/features/profile/data/repository/profile_repo_impl.dart';
+import 'package:near_me/features/profile/domain/usecases/accept_conn_request_usecase.dart';
+import 'package:near_me/features/profile/domain/usecases/check_connection_request.dart';
 import 'package:near_me/features/profile/domain/usecases/get_user_byId_usecase.dart';
 import 'package:near_me/features/Auth/domain/usecases/is_logged_in_usecase.dart';
 import 'package:near_me/features/Auth/domain/usecases/login_usecase.dart';
@@ -31,6 +41,7 @@ import 'package:near_me/features/location/domain/usecases/emit_current_location_
 import 'package:near_me/features/location/domain/usecases/get_current_location_usecase.dart';
 import 'package:near_me/features/location/domain/usecases/location_disabled_usecase.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
+import 'package:near_me/features/profile/domain/usecases/send_connection_request_usecase.dart';
 import 'package:near_me/features/profile/domain/usecases/update_profile_usecase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
@@ -66,10 +77,12 @@ Future<void> init() async {
   sl.registerLazySingleton<FirebaseAppCheck>(() => FirebaseAppCheck.instance);
   await sl<FirebaseAppCheck>().activate(androidProvider: AndroidProvider.debug);
   sl.registerLazySingleton<FlutterSecureStorage>(() => FlutterSecureStorage());
+  sl.registerLazySingleton<FirebaseDatabase>(() => FirebaseDatabase.instance);
+  sl.registerLazySingleton<FirebaseMessaging>(() => FirebaseMessaging.instance);
   //auth
   //repository
   sl.registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(sl(), sl(), sl(), sl(), sl(), sl()));
+      () => AuthRepositoryImpl(sl(), sl(), sl(), sl(), sl(), sl(), sl()));
   //usecases
   sl.registerLazySingleton<ReqeustOtpUsecase>(() => ReqeustOtpUsecase(sl()));
   sl.registerLazySingleton<VerifyOtpUsecase>(() => VerifyOtpUsecase(sl()));
@@ -145,49 +158,75 @@ Future<void> init() async {
       () => GetUserByIdUsecase(profileRepository: sl()));
   sl.registerLazySingleton<UpdateProfileUsecase>(
       () => UpdateProfileUsecase(profileRepository: sl()));
+  sl.registerLazySingleton<CheckConnectionRequestUsecase>(
+      () => CheckConnectionRequestUsecase(profileRepository: sl()));
+  sl.registerLazySingleton<SendConnectionRequestUsecase>(
+      () => SendConnectionRequestUsecase(profileRepository: sl()));
+  sl.registerLazySingleton<AcceptConnRequestUsecase>(
+      () => AcceptConnRequestUsecase(profileRepository: sl()));
   //bloc
   sl.registerFactory<ProfileBloc>(
     () => ProfileBloc(
-      getUserByIdUsecase: sl(),
-      updateProfileUsecase: sl(),
-    ),
+        getUserByIdUsecase: sl(),
+        updateProfileUsecase: sl(),
+        checkConnectionRequestUsecase: sl(),
+        acceptConnRequestUsecase: sl(),
+        sendConnectionRequestUsecase: sl()),
   );
 
   // chat
   // repository
-  sl.registerLazySingleton<ChatRepository>(() => ChatRepositoryImpl(
-        sl(),
-        sl(),
-        sl(),
-        sl(),
-      ));
+  sl.registerLazySingleton<ChatRepository>(
+      () => ChatRepositoryImpl(sl(), sl(), sl(), sl(), sl()));
 
   //usecases
   sl.registerLazySingleton<SendMessageUsecase>(
       () => SendMessageUsecase(chatRepository: sl()));
-  sl.registerLazySingleton<IsOnlineUsecase>(
-      () => IsOnlineUsecase(chatRepository: sl()));
   sl.registerLazySingleton<GetChatUsecase>(
     () => GetChatUsecase(chatRepository: sl()),
   );
   sl.registerLazySingleton<GetMessageUsecase>(
     () => GetMessageUsecase(chatRepository: sl()),
   );
+  sl.registerLazySingleton<MarkMessageUsecase>(
+      () => MarkMessageUsecase(chatRepository: sl()));
+  sl.registerLazySingleton<GetUsersStatusUsecase>(
+      () => GetUsersStatusUsecase(chatRepository: sl()));
+  sl.registerLazySingleton<GetConnectedUsersIdUsecase>(
+      () => GetConnectedUsersIdUsecase(chatRepository: sl()));
 //bloc
   sl.registerFactory<ChatBloc>(
     () => ChatBloc(
-      isOnlineUsecase: sl(),
       getChatUsecase: sl(),
     ),
   );
 
   //converstation
-  sl.registerFactory<ConversationBloc>(() => ConversationBloc(
-        getMessageUsecase: sl(),
-        sendMessageUsecase: sl(),
-      ));
+  sl.registerFactory<ConversationBloc>(
+    () => ConversationBloc(
+      getMessageUsecase: sl(),
+      sendMessageUsecase: sl(),
+      markMessageUsecase: sl(),
+      getUsersStatusUsecase: sl(),
+      getConnectedUsersIdUsecase: sl(),
+    ),
+  );
 
   //Internet bloc
 
   sl.registerFactory<InternetBloc>(() => InternetBloc(networkInfo: sl()));
+
+  //Homebloc
+
+  //repository
+  sl.registerLazySingleton<HomeRepository>(() => HomeRepoImpl(firestore: sl()));
+  //usecase
+  sl.registerLazySingleton<SearchUserUsecase>(
+      () => SearchUserUsecase(homeRepository: sl()));
+  //bloc
+  sl.registerFactory<HomeBloc>(
+    () => HomeBloc(
+      searchUserUsecase: sl(),
+    ),
+  );
 }

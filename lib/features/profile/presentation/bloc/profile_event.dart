@@ -24,3 +24,18 @@ final class UpdateProfileEvent extends ProfileEvent {
       required this.profileImage,
       required this.university});
 }
+
+final class CheckConnectionEvent extends ProfileEvent {
+  final String userId;
+  CheckConnectionEvent(this.userId);
+}
+
+final class SendConnectionRequest extends ProfileEvent {
+  final String userId;
+  SendConnectionRequest(this.userId);
+}
+
+final class AcceptConReqEvent extends ProfileEvent {
+  final String userId;
+  AcceptConReqEvent(this.userId);
+}

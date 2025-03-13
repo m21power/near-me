@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:near_me/app_lifecycle.dart';
 import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
+import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/ThemeBloc/theme_bloc.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
@@ -28,7 +30,7 @@ void main() async {
   await init();
   await dotenv.load(fileName: ".env");
   await UserConstant().initializeUser();
-  runApp(const MainApp());
+  runApp(AppLifecycleObserver(child: const MainApp()));
 }
 
 class MainApp extends StatelessWidget {
@@ -50,7 +52,8 @@ class MainApp extends StatelessWidget {
         BlocProvider(create: (context) => sl<ProfileBloc>()),
         BlocProvider(create: (context) => sl<ChatBloc>()),
         BlocProvider(create: (context) => sl<ConversationBloc>()),
-        BlocProvider(create: (context) => sl<InternetBloc>())
+        BlocProvider(create: (context) => sl<InternetBloc>()),
+        BlocProvider(create: (context) => sl<HomeBloc>())
       ],
       child: BlocBuilder<ThemeBloc, ThemeMode>(
         builder: (context, themeMode) {

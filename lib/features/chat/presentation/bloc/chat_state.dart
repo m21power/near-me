@@ -22,3 +22,10 @@ final class GetChatEntitiesState extends ChatState {
   @override
   List<Object> get props => [chatEntites];
 }
+
+final class ChatErrorState extends ChatState {
+  final String message;
+  ChatErrorState(this.message);
+  @override
+  List<Object> get props => [message];
+}

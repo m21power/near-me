@@ -21,9 +21,9 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   final MapController mapController = MapController();
-  // LatLng myLocation = const LatLng(9.031859697470294, 38.763446899832886);
-  LatLng myLocation = UserConstant().getLocation() ??
-      LatLng(9.031859697470294, 38.763446899832886);
+  LatLng myLocation = const LatLng(9.031859697470294, 38.763446899832886);
+  // LatLng myLocation = UserConstant().getLocation() ??
+  //     LatLng(9.031859697470294, 38.763446899832886);
   bool isLoading = false;
   List<UserLocEntity> userLoc = [];
 
@@ -34,23 +34,22 @@ class _MapPageState extends State<MapPage> {
     return BlocConsumer<LocationBloc, LocationState>(
       listener: (context, state) {
         print('Location state: $state');
-        print(myLocation);
 
         if (state is GetNearbyUsersSuccessState) {
           setState(() {
             userLoc = state.nearbyUsers;
           });
         }
-        if (UserConstant().getLocation() != myLocation &&
-            UserConstant().getLocation() != null) {
-          myLocation = UserConstant().getLocation()!;
-          Future.delayed(Duration(milliseconds: 200), () {
-            if (mounted) {
-              mapController.move(myLocation, 15);
-            }
-          });
-          isLoading = false;
-        }
+        // if (UserConstant().getLocation() != myLocation &&
+        //     UserConstant().getLocation() != null) {
+        //   myLocation = UserConstant().getLocation()!;
+        //   Future.delayed(Duration(milliseconds: 200), () {
+        //     if (mounted) {
+        //       mapController.move(myLocation, 15);
+        //     }
+        //   });
+        //   isLoading = false;
+        // }
       },
       builder: (context, state) {
         if (isLoading) {
@@ -79,20 +78,20 @@ class _MapPageState extends State<MapPage> {
             MarkerLayer(markers: [
               buildMarker(
                 UserLocEntity(
-                  userId: UserConstant().getUserId()!,
-                  name: 'Me',
-                  email: user.email,
-                  photoUrl: user.photoUrl ?? '',
-                  latitude: myLocation.latitude,
-                  longitude: myLocation.longitude,
-                  university: user.university,
-                  major: user.major,
-                  backgroundUrl: user.backgroundUrl ?? '',
-                  isEmailVerified: true,
-                  password: '',
-                  bio: user.bio ?? '',
-                  gender: user.gender,
-                ),
+                    userId: UserConstant().getUserId()!,
+                    name: 'Me',
+                    email: user.email,
+                    photoUrl: user.photoUrl ?? '',
+                    latitude: myLocation.latitude,
+                    longitude: myLocation.longitude,
+                    university: user.university,
+                    major: user.major,
+                    backgroundUrl: user.backgroundUrl ?? '',
+                    isEmailVerified: true,
+                    password: '',
+                    bio: user.bio ?? '',
+                    gender: user.gender,
+                    fcmToken: user.fcmToken),
                 context,
               ),
               // buildMarker(
@@ -149,6 +148,7 @@ GestureDetector profileMaker(UserLocEntity userLoc, BuildContext context) {
                             isEmailVerified: userLoc.isEmailVerified,
                             password: userLoc.password,
                             bio: userLoc.bio,
+                            fcmToken: userLoc.fcmToken,
                             gender: userLoc.gender),
                         userPosts: [],
                       )))
