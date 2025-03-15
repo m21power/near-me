@@ -206,16 +206,36 @@ class ProfileRepoImpl extends ProfileRepository {
   Future<Either<Failure, Unit>> sendConnectionRequest(String to) async {
     if (await networkInfo.isConnected) {
       try {
-        var userId = UserConstant().getUserId();
+        var user = UserConstant().getUser();
         await firestore
-            .collection('users')
+            .collection('request')
             .doc(to)
             .collection('connection_request')
             .add({
-          "from": userId,
+          "from": user!.id,
           'to': to,
           'status': "pending",
         });
+        Map<String, dynamic> notModel = {
+          "accepted": false,
+          "from": user.id,
+          "to": to,
+          "title": "New Connection Request",
+          "body": "${user!.name} has sent you a connection request.",
+          "timestamp": FieldValue.serverTimestamp(),
+          "profilePic": user.photoUrl,
+          "name": user.name,
+          "status": "unseen",
+          "major": user.major,
+          "fromGender": user.gender
+        };
+
+        // add the not to the notification collection of the to
+        await firestore
+            .collection('notifications')
+            .doc(to)
+            .collection("notification")
+            .add(notModel);
         return const Right(unit);
       } catch (e) {
         return Left(ServerFailure(message: e.toString()));
@@ -240,7 +260,7 @@ class ProfileRepoImpl extends ProfileRepository {
       }
       // if they are not connected let's check if the request was sent
       var myRequest = await firestore
-          .collection('users')
+          .collection('request')
           .doc(receiverId)
           .collection('connection_request')
           .where('from', isEqualTo: userId)
@@ -250,7 +270,7 @@ class ProfileRepoImpl extends ProfileRepository {
             from: userId!, to: receiverId, status: 'pending'));
       }
       var hisRequest = await firestore
-          .collection('users')
+          .collection('request')
           .doc(userId)
           .collection('connection_request')
           .where('from', isEqualTo: receiverId)
@@ -269,17 +289,120 @@ class ProfileRepoImpl extends ProfileRepository {
   Future<Either<Failure, Unit>> acceptRequest(String userId) async {
     if (await networkInfo.isConnected) {
       var myId = UserConstant().getUserId();
-      await firestore
-          .collection('users')
+      var user1 = UserConstant().getUser();
+      var requestSnapshot = await firestore
+          .collection('request')
           .doc(myId)
           .collection('connection_request')
           .where('from', isEqualTo: userId)
+          .get();
+
+      for (var doc in requestSnapshot.docs) {
+        await doc.reference.delete();
+      }
+      var user2 = await firestore.collection('users').doc(userId).get();
+      var user2Model = UserModel.fromMap(user2.data()!);
+
+      var ids = [myId, userId];
+      ids.sort();
+      var conId = ids.join("_");
+      Map<String, dynamic> connectModel = {
+        "from": userId,
+        "to": myId,
+        "acceptedAt": FieldValue.serverTimestamp()
+      };
+      await firestore.collection("connections").doc(conId).set(connectModel);
+
+      Map<String, dynamic> notModel = {
+        'accepted': true,
+        "from": myId,
+        "to": userId,
+        "title": "Connection Request Accepted",
+        "body": "${user1!.name} has accepted your connection request.",
+        "timestamp": FieldValue.serverTimestamp(),
+        "profilePic": user1.photoUrl,
+        "name": user1.name,
+        "status": "unseen",
+        "major": user1.major,
+        "fromGender": user1.gender
+      };
+      await firestore
+          .collection("notifications")
+          .doc(userId)
+          .collection("notification")
+          .add(notModel);
+      Map<String, dynamic> notModel2 = {
+        'accepted': true,
+        "from": userId,
+        "to": myId,
+        "title": "Connection Request Accepted",
+        "body": "You can now communicate with ${user2Model.name}.",
+        "timestamp": FieldValue.serverTimestamp(),
+        "profilePic": user2Model.photoUrl,
+        "status": "unseen",
+        "name": user2Model.name,
+        "major": user2Model.major,
+        "fromGender": user2Model.gender
+      };
+      await firestore
+          .collection("notifications")
+          .doc(myId)
+          .collection("notification")
+          .where("from", isEqualTo: userId)
           .get()
-          .then((querySnapshot) {
-        for (var doc in querySnapshot.docs) {
-          doc.reference.update({'status': 'accepted'});
+          .then((snapshot) {
+        for (var doc in snapshot.docs) {
+          doc.reference.delete();
         }
       });
+
+      await firestore
+          .collection("notifications")
+          .doc(myId)
+          .collection("notification")
+          .add(notModel2);
+      return const Right(unit);
+    } else {
+      return const Left(ServerFailure(message: 'No Internet Connection'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> rejectRequest(String userId) async {
+    if (await networkInfo.isConnected) {
+      var myId = UserConstant().getUserId();
+      var requestSnapshot = await firestore
+          .collection('request')
+          .doc(myId)
+          .collection('connection_request')
+          .where('from', isEqualTo: userId)
+          .get();
+      for (var doc in requestSnapshot.docs) {
+        await doc.reference.delete();
+      }
+      await firestore
+          .collection("notifications")
+          .doc(myId)
+          .collection("notification")
+          .where("from", isEqualTo: userId)
+          .get()
+          .then((snapshot) {
+        for (var doc in snapshot.docs) {
+          doc.reference.delete();
+        }
+      });
+      await firestore
+          .collection("notifications")
+          .doc(userId)
+          .collection("notification")
+          .where("from", isEqualTo: myId)
+          .get()
+          .then((snapshot) {
+        for (var doc in snapshot.docs) {
+          doc.reference.delete();
+        }
+      });
+
       return const Right(unit);
     } else {
       return const Left(ServerFailure(message: 'No Internet Connection'));

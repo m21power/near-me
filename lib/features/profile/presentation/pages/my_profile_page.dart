@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/image_picker/image_picker.dart';
+import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/edit_profile_page.dart';
@@ -35,7 +37,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
           },
           child: BlocConsumer<ProfileBloc, ProfileState>(
             listener: (context, state) {
-              print("state is $state");
               if (state is UpdateProfileSuccessState) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -53,7 +54,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
               }
             },
             builder: (context, state) {
-              print("state is $state");
               var user =
                   sl<SharedPreferences>().getString(Constant.userPreferenceKey);
               var userModel = jsonDecode(user!);
@@ -200,8 +200,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
             image: DecorationImage(
               image: userModel["backgroundUrl"] != null &&
                       userModel["backgroundUrl"] != ""
-                  ? NetworkImage(userModel["backgroundUrl"])
-                  : const AssetImage("assets/background-image.png"),
+                  ? CachedNetworkImageProvider(userModel["backgroundUrl"],
+                      cacheManager: MyCacheManager())
+                  : const AssetImage("assets/background-image.png")
+                      as ImageProvider,
               fit: BoxFit.cover,
             ),
           ),
@@ -239,7 +241,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                 radius: 50,
                 backgroundImage:
                     userModel["photoUrl"] != null && userModel["photoUrl"] != ""
-                        ? NetworkImage(userModel["photoUrl"])
+                        ? CachedNetworkImageProvider(userModel["photoUrl"],
+                            cacheManager: MyCacheManager())
                         : userModel['gender'] == 'male'
                             ? const AssetImage("assets/male.png")
                             : const AssetImage("assets/woman.png"),

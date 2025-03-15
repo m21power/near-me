@@ -11,6 +11,8 @@ import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/home/presentation/widgets/custom_drawer.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/features/location/presentation/pages/map_page.dart';
+import 'package:near_me/features/notification/domain/entities/notif_entities.dart';
+import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:near_me/features/notification/presentation/pages/notification_page.dart';
 import 'package:near_me/features/post/presentation/pages/post_page.dart';
 
@@ -24,7 +26,8 @@ final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 class _TopBarState extends State<TopBar> {
   bool openSearchTextField = false;
   int totalUnreadChatCount = 0;
-  int totalUnseenNotCount = 10;
+  int totalUnseenNotCount = 0;
+  List<NotificationModel> notiModels = [];
   TextEditingController searchController = TextEditingController();
   List<SearchedUser> searchedUsers = [];
   bool showDial = false;
@@ -86,35 +89,45 @@ class _TopBarState extends State<TopBar> {
                       icon: Icon(Icons.search),
                     ),
                     IconButton(
-                      icon: Stack(children: [
-                        Icon(Icons.notifications,
-                            size: 30,
-                            color: Theme.of(context).colorScheme.onPrimary),
-                        totalUnseenNotCount != 0
-                            ? Positioned(
-                                top: 0,
-                                right: 0,
-                                child: CircleAvatar(
-                                  radius: 9,
-                                  backgroundColor: Colors.red,
-                                  child: Text(
-                                    totalUnseenNotCount > 9
-                                        ? "9+"
-                                        : totalUnseenNotCount.toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
+                      icon: BlocBuilder<NotificationBloc, NotificationState>(
+                        builder: (context, notState) {
+                          if (notState is GetNotificationSuccessState) {
+                            totalUnseenNotCount = notState.totalUnreadCount;
+                            notiModels = notState.notification;
+                          }
+                          return Stack(children: [
+                            Icon(Icons.notifications,
+                                size: 30,
+                                color: Theme.of(context).colorScheme.onPrimary),
+                            totalUnseenNotCount != 0
+                                ? Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: CircleAvatar(
+                                      radius: 9,
+                                      backgroundColor: Colors.red,
+                                      child: Text(
+                                        totalUnseenNotCount > 9
+                                            ? "9+"
+                                            : totalUnseenNotCount.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              )
-                            : SizedBox(),
-                      ]),
+                                  )
+                                : SizedBox(),
+                          ]);
+                        },
+                      ),
                       onPressed: () {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => NotificationPage()));
+                                builder: (context) => NotificationPage(
+                                      notiModels: notiModels,
+                                    )));
                       },
                     ),
                   ],

@@ -1,17 +1,11 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/constants/user_constant.dart';
-import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/presentation/pages/conversation_page.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Auth/domain/entities/user_entities.dart';
 import '../../../chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
@@ -48,6 +42,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
               IconButton(
                 onPressed: () {
                   var user = UserConstant().getUser();
+                  context.read<ConversationBloc>().add(GetMessageEvent(
+                        widget.user.id,
+                      ));
                   ChatEntities chatEntity = ChatEntities(
                       chatId: '',
                       lastMessage: '',
@@ -100,7 +97,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
         body: BlocConsumer<ProfileBloc, ProfileState>(
           listener: (context, state) {
-            print("state from user pro page: $state");
             if (state is CheckConnectionSuccessState) {
               if (state.connectionReqModel.status == 'accepted') {
                 setState(() {

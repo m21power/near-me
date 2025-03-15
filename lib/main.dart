@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,20 +9,24 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/app_lifecycle.dart';
 import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/core/service/notification_service.dart';
 import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/ThemeBloc/theme_bloc.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
+import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:near_me/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/core.dart';
 import 'core/routes/route.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +35,14 @@ void main() async {
   await init();
   await dotenv.load(fileName: ".env");
   await UserConstant().initializeUser();
+  await NotificationService().initNotification();
+  // Initialize and open the cache database
+  await FMTCObjectBoxBackend().initialise();
+  await FMTCStore('mapStore').manage.create();
+
+  // await FirebaseFirestore.instance.terminate();
+  // await FirebaseFirestore.instance.clearPersistence();
+
   runApp(AppLifecycleObserver(child: const MainApp()));
 }
 
@@ -53,7 +66,8 @@ class MainApp extends StatelessWidget {
         BlocProvider(create: (context) => sl<ChatBloc>()),
         BlocProvider(create: (context) => sl<ConversationBloc>()),
         BlocProvider(create: (context) => sl<InternetBloc>()),
-        BlocProvider(create: (context) => sl<HomeBloc>())
+        BlocProvider(create: (context) => sl<HomeBloc>()),
+        BlocProvider(create: (context) => sl<NotificationBloc>())
       ],
       child: BlocBuilder<ThemeBloc, ThemeMode>(
         builder: (context, themeMode) {

@@ -37,17 +37,13 @@ dependencies:
   # fluttertoast: ^8.2.8
   permission_handler: ^11.3.1
   location: ^6.0.2
-  uuid: ^4.5.1
-  # cached_network_image: ^3.4.1
+  # uuid: ^4.5.1
+  cached_network_image: ^3.4.1
   connectivity_plus: ^6.1.1
   image_picker: ^1.1.2
-  # flutter_otp_text_field: ^1.4.0+2
-  # pin_code_fields: ^8.0.1
   flutter_secure_storage: ^9.2.4
-  # latlng: ^2.0.7
   latlong2: ^0.9.1
   flutter_dotenv: ^5.2.1
-  # socket_io_client: ^3.0.2
   lib: ^0.0.3
   provider: ^6.1.2
   firebase_core: ^3.11.0
@@ -60,6 +56,8 @@ dependencies:
   flutter_map: ^8.0.0
   web_socket_channel: ^3.0.2
   emoji_picker_flutter: ^4.3.0
+  flutter_map_tile_caching: ^10.1.0
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:

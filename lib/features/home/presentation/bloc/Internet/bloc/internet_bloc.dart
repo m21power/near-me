@@ -2,35 +2,37 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:near_me/core/core.dart';
+import 'package:near_me/features/home/domain/usecases/check_internet_connection.dart';
 
 part 'internet_event.dart';
 part 'internet_state.dart';
 
 class InternetBloc extends Bloc<InternetEvent, InternetState> {
-  final NetworkInfo networkInfo;
-  late Timer? timer;
-  InternetBloc({required this.networkInfo}) : super(InternetInitial()) {
-    startChecking();
-    on<CheckInternetConnectionEvent>(
-      (event, emit) async {
-        if (await networkInfo.isConnected) {
-          emit(InternetConnectedSuccessfully());
-        } else {
-          emit(NoInternetConnection("No internet connection"));
-        }
+  StreamSubscription<bool>? networkSubscription;
+  final CheckInternetConnectionUsecase checkInternetConnectionUsecase;
+  InternetBloc({required this.checkInternetConnectionUsecase})
+      : super(InternetInitial()) {
+    networkSubscription = checkInternetConnectionUsecase().listen((ondata) {
+      if (ondata == false) {
+        add(NoInternetConnection());
+      } else {
+        add(ConnectedToInternet());
+      }
+    });
+    on<NoInternetConnection>(
+      (event, emit) {
+        emit(NoInternetConnectionState("No Internet Connection"));
+      },
+    );
+    on<ConnectedToInternet>(
+      (event, emit) {
+        emit(InternetConnectedSuccessfully());
       },
     );
   }
-  void startChecking() {
-    Timer.periodic(Duration(seconds: 1), (timer) {
-      add(CheckInternetConnectionEvent());
-    });
-  }
-
   @override
   Future<void> close() {
-    timer?.cancel();
+    networkSubscription?.cancel();
     return super.close();
   }
 }

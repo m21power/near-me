@@ -28,6 +28,15 @@ class UserConstant {
     return _cachedUserId;
   }
 
+  int notificationId = 0;
+  int getNewNotificaionId() {
+    return notificationId;
+  }
+
+  void updateNotificationId() {
+    notificationId += 1;
+  }
+
   LatLng? _cachedLocation;
 
   // Getter to access location

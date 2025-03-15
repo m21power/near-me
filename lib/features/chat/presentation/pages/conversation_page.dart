@@ -35,7 +35,6 @@ class _ConversationPageState extends State<ConversationPage> {
     return SafeArea(
       child: BlocConsumer<ConversationBloc, ConversationState>(
         listener: (context, state) {
-          print('state: $state');
           if (state is SendMessageSuccessState) {}
 
           if (state is GetMessageSuccessState) {

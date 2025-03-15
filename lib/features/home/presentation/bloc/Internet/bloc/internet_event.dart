@@ -4,4 +4,6 @@ sealed class InternetEvent {
   const InternetEvent();
 }
 
-class CheckInternetConnectionEvent extends InternetEvent {}
+class NoInternetConnection extends InternetEvent {}
+
+class ConnectedToInternet extends InternetEvent {}

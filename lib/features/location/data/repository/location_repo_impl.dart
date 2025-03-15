@@ -52,7 +52,7 @@ class LocationRepoImpl implements LocationRepository {
       return;
     }
 
-    yield* Stream.periodic(const Duration(seconds: 10)).asyncMap((_) async {
+    yield* Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
       try {
         Position position = await Geolocator.getCurrentPosition();
         return Right<Failure, Position>(position); // Explicit type
@@ -75,6 +75,11 @@ class LocationRepoImpl implements LocationRepository {
       "latitude": 9.031859697470294,
       "longitude": 38.763446899832886
     }));
+    // channel.sink.add(jsonEncode({
+    //   'userId': userId,
+    //   "latitude": position.latitude,
+    //   "longitude": position.longitude
+    // }));
     return unit;
   }
 

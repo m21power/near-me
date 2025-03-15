@@ -9,9 +9,9 @@ sealed class InternetState extends Equatable {
 
 final class InternetInitial extends InternetState {}
 
-final class NoInternetConnection extends InternetState {
+final class NoInternetConnectionState extends InternetState {
   final String message;
-  NoInternetConnection(this.message);
+  NoInternetConnectionState(this.message);
   @override
   List<Object> get props => [message];
 }

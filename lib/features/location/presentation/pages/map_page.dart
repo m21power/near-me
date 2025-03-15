@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/dependency_injection.dart';
@@ -10,6 +11,7 @@ import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import '../../../profile/presentation/pages/user_profile_page.dart';
 
 class MapPage extends StatefulWidget {
@@ -33,8 +35,6 @@ class _MapPageState extends State<MapPage> {
 
     return BlocConsumer<LocationBloc, LocationState>(
       listener: (context, state) {
-        print('Location state: $state');
-
         if (state is GetNearbyUsersSuccessState) {
           setState(() {
             userLoc = state.nearbyUsers;
@@ -57,63 +57,78 @@ class _MapPageState extends State<MapPage> {
             child: CircularProgressIndicator(),
           );
         }
-        return FlutterMap(
-          mapController: mapController, // Attach controller here
-          options: MapOptions(
-            initialZoom: 15,
-            initialCenter: myLocation,
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.drag |
-                  InteractiveFlag.flingAnimation |
-                  InteractiveFlag.pinchMove |
-                  InteractiveFlag.pinchZoom |
-                  InteractiveFlag.doubleTapZoom,
-            ),
-          ),
+        return Column(
           children: [
-            TileLayer(
-              urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-              subdomains: const ['a', 'b', 'c'],
-            ),
-            MarkerLayer(markers: [
-              buildMarker(
-                UserLocEntity(
-                    userId: UserConstant().getUserId()!,
-                    name: 'Me',
-                    email: user.email,
-                    photoUrl: user.photoUrl ?? '',
-                    latitude: myLocation.latitude,
-                    longitude: myLocation.longitude,
-                    university: user.university,
-                    major: user.major,
-                    backgroundUrl: user.backgroundUrl ?? '',
-                    isEmailVerified: true,
-                    password: '',
-                    bio: user.bio ?? '',
-                    gender: user.gender,
-                    fcmToken: user.fcmToken),
-                context,
+            Expanded(
+              child: FlutterMap(
+                mapController: mapController, // Attach controller here
+                options: MapOptions(
+                  initialZoom: 15,
+                  initialCenter: myLocation,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.drag |
+                        InteractiveFlag.flingAnimation |
+                        InteractiveFlag.pinchMove |
+                        InteractiveFlag.pinchZoom |
+                        InteractiveFlag.doubleTapZoom,
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    tileProvider: FMTCTileProvider(
+                      stores: const {
+                        'mapStore': BrowseStoreStrategy.readUpdateCreate
+                      },
+                    ),
+                    urlTemplate:
+                        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    subdomains: const ['a', 'b', 'c'],
+                  ),
+                  MarkerLayer(markers: [
+                    buildMarker(
+                      UserLocEntity(
+                          userId: UserConstant().getUserId()!,
+                          name: 'Me',
+                          email: user.email,
+                          photoUrl: user.photoUrl ?? '',
+                          latitude: myLocation.latitude,
+                          longitude: myLocation.longitude,
+                          university: user.university,
+                          major: user.major,
+                          backgroundUrl: user.backgroundUrl ?? '',
+                          isEmailVerified: true,
+                          password: '',
+                          bio: user.bio ?? '',
+                          gender: user.gender,
+                          fcmToken: user.fcmToken),
+                      context,
+                    ),
+                    ...userLoc.map((user) => buildMarker(user, context)),
+                  ])
+                ],
               ),
-              // buildMarker(
-              //   UserLocEntity(
-              //     userId: '123',
-              //     name: 'Filfilu',
-              //     email: user.email,
-              //     photoUrl: user.photoUrl ?? '',
-              //     latitude: 37.421555,
-              //     longitude: -122.084011,
-              //     university: user.university,
-              //     major: user.major,
-              //     backgroundUrl: user.backgroundUrl ?? '',
-              //     isEmailVerified: true,
-              //     password: '',
-              //     bio: user.bio ?? '',
-              //     gender: user.gender,
-              //   ),
-              //   context,
-              // ),
-              ...userLoc.map((user) => buildMarker(user, context)),
-            ])
+            ),
+            BlocBuilder<InternetBloc, InternetState>(
+              builder: (context, intState) {
+                if (intState is NoInternetConnectionState) {
+                  return const Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(width: 10),
+                          Text('Connecting...'),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox();
+              },
+            )
           ],
         );
       },

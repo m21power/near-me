@@ -18,4 +18,5 @@ abstract class ProfileRepository {
   Future<Either<Failure, ConnectionReqModel>> checkConnectionRequest(
       String receiverId);
   Future<Either<Failure, Unit>> acceptRequest(String userId);
+  Future<Either<Failure, Unit>> rejectRequest(String userId);
 }

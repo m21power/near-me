@@ -20,9 +20,14 @@ import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
 import 'package:near_me/features/home/data/repository/home_repo_impl.dart';
 import 'package:near_me/features/home/domain/repository/home_repository.dart';
+import 'package:near_me/features/home/domain/usecases/check_internet_connection.dart';
 import 'package:near_me/features/home/domain/usecases/seach_user_usecase.dart';
 import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
+import 'package:near_me/features/notification/data/repository/notification_repo_impl.dart';
+import 'package:near_me/features/notification/domain/repository/notification_repo.dart';
+import 'package:near_me/features/notification/domain/usecases/get_notifications_usecase.dart';
+import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:near_me/features/profile/data/repository/profile_repo_impl.dart';
 import 'package:near_me/features/profile/domain/usecases/accept_conn_request_usecase.dart';
 import 'package:near_me/features/profile/domain/usecases/check_connection_request.dart';
@@ -213,13 +218,16 @@ Future<void> init() async {
   );
 
   //Internet bloc
-
-  sl.registerFactory<InternetBloc>(() => InternetBloc(networkInfo: sl()));
+  sl.registerLazySingleton<CheckInternetConnectionUsecase>(
+      () => CheckInternetConnectionUsecase(homeRepository: sl()));
+  sl.registerFactory<InternetBloc>(
+      () => InternetBloc(checkInternetConnectionUsecase: sl()));
 
   //Homebloc
 
   //repository
-  sl.registerLazySingleton<HomeRepository>(() => HomeRepoImpl(firestore: sl()));
+  sl.registerLazySingleton<HomeRepository>(
+      () => HomeRepoImpl(firestore: sl(), networkInfo: sl()));
   //usecase
   sl.registerLazySingleton<SearchUserUsecase>(
       () => SearchUserUsecase(homeRepository: sl()));
@@ -228,5 +236,19 @@ Future<void> init() async {
     () => HomeBloc(
       searchUserUsecase: sl(),
     ),
+  );
+
+  //NOTIFICATION
+  //repository
+  sl.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepoImpl(sl()),
+  );
+  //usecase
+  sl.registerLazySingleton<GetNotificationsUsecase>(
+    () => GetNotificationsUsecase(notificationRepository: sl()),
+  );
+  //bloc
+  sl.registerFactory<NotificationBloc>(
+    () => NotificationBloc(getNotificationsUsecase: sl()),
   );
 }

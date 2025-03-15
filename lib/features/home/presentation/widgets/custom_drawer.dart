@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
@@ -51,7 +53,8 @@ Drawer customDrawer(BuildContext context) {
                                 (UserConstant().getUser()!.photoUrl != null &&
                                         UserConstant().getUser()!.photoUrl !=
                                             '')
-                                    ? NetworkImage(
+                                    ? CachedNetworkImageProvider(
+                                        cacheManager: MyCacheManager(),
                                         UserConstant().getUser()!.photoUrl!)
                                     : null,
                           ),

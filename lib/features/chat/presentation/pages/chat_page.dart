@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/presentation/pages/conversation_page.dart';
 
+import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import '../bloc/chat_bloc.dart';
 import '../bloc/conversation/bloc/conversation_bloc.dart';
 
@@ -32,7 +35,6 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
-        print("state: $state");
         if (state is GetChatEntitiesState) {
           chatEntities = state.chatEntites;
           if (chatEntities.isNotEmpty) {
@@ -57,26 +59,54 @@ class _ChatPageState extends State<ChatPage> {
             }
           },
           builder: (context, convState) {
-            print(convState);
             return RefreshIndicator(
               onRefresh: _onRefresh,
-              child: ListView.builder(
-                itemCount: chatEntities.length,
-                itemBuilder: (context, index) {
-                  final chat = chatEntities[index];
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: chatEntities.length,
+                      itemBuilder: (context, index) {
+                        final chat = chatEntities[index];
 
-                  return ChatListItem(
-                    chatEntity: chat,
-                    isOnline: userStatus.isNotEmpty
-                        ? (amUser1 == true
-                            ? userStatus[chatEntities[index].user2Id]?.online ??
-                                false
-                            : userStatus[chatEntities[index].user1Id]?.online ??
-                                false)
-                        : false,
-                    amUser1: amUser1!,
-                  );
-                },
+                        return ChatListItem(
+                          chatEntity: chat,
+                          isOnline: userStatus.isNotEmpty
+                              ? (amUser1 == true
+                                  ? userStatus[chatEntities[index].user2Id]
+                                          ?.online ??
+                                      false
+                                  : userStatus[chatEntities[index].user1Id]
+                                          ?.online ??
+                                      false)
+                              : false,
+                          amUser1: amUser1!,
+                        );
+                      },
+                    ),
+                  ),
+                  BlocBuilder<InternetBloc, InternetState>(
+                    builder: (context, intState) {
+                      if (intState is NoInternetConnectionState) {
+                        return const Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(width: 10),
+                                Text('Connecting...'),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      return SizedBox();
+                    },
+                  )
+                ],
               ),
             );
           },
@@ -131,10 +161,12 @@ class ChatListItem extends StatelessWidget {
                     : const AssetImage("assets/woman.png")),
             foregroundImage: amUser1
                 ? (chatEntity.user2ProfilePic.isNotEmpty
-                    ? NetworkImage(chatEntity.user2ProfilePic)
+                    ? CachedNetworkImageProvider(chatEntity.user2ProfilePic,
+                        cacheManager: MyCacheManager())
                     : null)
                 : (chatEntity.user1ProfilePic.isNotEmpty
-                    ? NetworkImage(chatEntity.user1ProfilePic)
+                    ? CachedNetworkImageProvider(chatEntity.user1ProfilePic,
+                        cacheManager: MyCacheManager())
                     : null),
           ),
           Positioned(

@@ -200,7 +200,6 @@ class AuthRepositoryImpl implements AuthRepository {
             .get();
 
         if (value.docs.isNotEmpty) {
-          print("the user is found");
           print(value.docs.first.data());
           var user = UserModel.fromMap(value.docs.first.data());
           print(user.id);
@@ -208,7 +207,6 @@ class AuthRepositoryImpl implements AuthRepository {
               key: Constant.userIdSecureStorageKey, value: user.id);
           await secureStorage.write(
               key: Constant.userPasswordSecureStoreKey, value: password);
-          print("am i here");
           // Create a copy of user data without sensitive fields
           var userData = Map<String, dynamic>.from(value.docs.first.data());
           userData.remove("id");
