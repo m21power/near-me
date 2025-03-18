@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
+import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -85,6 +86,7 @@ Drawer customDrawer(BuildContext context) {
         ListTile(
           title: const Text('My Profile'),
           onTap: () async {
+            context.read<PostBloc>().add(GetMyPostEvent());
             Navigator.push(context, MaterialPageRoute(builder: (context) {
               return MyProfilePage(
                 userPosts: [],

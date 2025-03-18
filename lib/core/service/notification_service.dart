@@ -22,6 +22,18 @@ class NotificationService {
       );
 
       await notificationPlugin.initialize(initSettings);
+
+      // Request permission for Android 13+
+      if (await notificationPlugin
+              .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin>()
+              ?.requestNotificationsPermission() ??
+          false) {
+        print("Notification permission granted");
+      } else {
+        print("Notification permission denied");
+      }
+
       _isInitialized = true;
     } catch (e) {
       print('Error initializing notifications: $e');

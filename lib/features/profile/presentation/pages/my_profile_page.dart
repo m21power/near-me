@@ -7,9 +7,14 @@ import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/image_picker/image_picker.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/dependency_injection.dart';
+import 'package:near_me/features/post/domain/enitities/post_entities.dart';
+import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:near_me/features/profile/presentation/widgets/my_post.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 
 class MyProfilePage extends StatefulWidget {
   final List<String> userPosts;
@@ -23,7 +28,8 @@ class MyProfilePage extends StatefulWidget {
 class _MyProfilePageState extends State<MyProfilePage> {
   String? newProfileImage;
   String? newBackgroundImage;
-  bool isImageChanged = false; // Track if user changed an image
+  bool isImageChanged = false;
+  List<PostModel> myposts = [];
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +72,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   profileImageAndBack(userModel),
                   // Scrollable Content
                   Expanded(
+                    flex: 1,
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.only(top: 20),
                       child: Column(
@@ -127,27 +134,98 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           const SizedBox(height: 20),
 
                           // User Posts Section
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text("My Posts",
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold)),
-                            ),
+                                alignment: Alignment.centerLeft,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text("My Posts",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold)),
+                                    IconButton(
+                                      onPressed: () async {
+                                        var result = await sl<ImagePath>()
+                                            .getImagePath();
+                                        result.fold((l) {
+                                          print("error occurred picking image");
+                                        }, (r) {
+                                          context
+                                              .read<PostBloc>()
+                                              .add(CreatePostEvent(r));
+                                        });
+                                      },
+                                      icon: Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary, // Set your button color
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Colors.black26,
+                                              offset: Offset(0, 2),
+                                              blurRadius: 4,
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.emoji_emotions_outlined,
+                                              size: 30,
+                                              color: Colors.white, // Icon color
+                                            ),
+                                            Positioned(
+                                              top: -1,
+                                              right: -1,
+                                              child: Icon(
+                                                Icons.add,
+                                                color: Colors.white,
+                                                size: 30,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )),
                           ),
-
-                          const SizedBox(height: 10),
-
-                          const Center(child: Text("No posts available")),
-
-                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
                   ),
+                  BlocConsumer<PostBloc, PostState>(
+                    listener: (context, postState) {
+                      if (postState is CreatePostSuccessState) {
+                        showSuccess("Post created successfully");
+                      }
+                      if (postState is CreatePostFailureState) {
+                        showError("Failed to create post");
+                      }
+                      if (postState is GetMyPostSuccessState) {
+                        myposts = postState.posts;
+                      }
+                    },
+                    builder: (context, postState) {
+                      if (postState is PostingState ||
+                          postState is GetMyPostsInitialState) {
+                        print(postState);
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
 
+                      return myPosts(myposts);
+                    },
+                  ),
                   // Save Button (Only appears if an image is changed)
                   if (isImageChanged)
                     Padding(
@@ -180,6 +258,27 @@ class _MyProfilePageState extends State<MyProfilePage> {
                                 TextStyle(fontSize: 16, color: Colors.white)),
                       ),
                     ),
+                  BlocBuilder<InternetBloc, InternetState>(
+                    builder: (context, intState) {
+                      if (intState is NoInternetConnectionState) {
+                        return const Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(width: 10),
+                                Text('Connecting...'),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      return SizedBox();
+                    },
+                  )
                 ],
               );
             },
@@ -187,6 +286,16 @@ class _MyProfilePageState extends State<MyProfilePage> {
         ),
       ),
     );
+  }
+
+  showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.green));
+  }
+
+  showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red));
   }
 
   Stack profileImageAndBack(dynamic userModel) {

@@ -12,7 +12,6 @@ class NotificationRepoImpl implements NotificationRepository {
   Stream<List<NotificationModel>> getNotification() {
     var userId = UserConstant().getUserId();
     bool isInitialLoad = true;
-
     return firestore
         .collection("notifications")
         .doc(userId)

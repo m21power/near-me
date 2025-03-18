@@ -28,6 +28,16 @@ import 'package:near_me/features/notification/data/repository/notification_repo_
 import 'package:near_me/features/notification/domain/repository/notification_repo.dart';
 import 'package:near_me/features/notification/domain/usecases/get_notifications_usecase.dart';
 import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:near_me/features/post/data/repository/post_repo_impl.dart';
+import 'package:near_me/features/post/domain/repository/post_repository.dart';
+import 'package:near_me/features/post/domain/usecases/create_post_usecase.dart';
+import 'package:near_me/features/post/domain/usecases/get_my_post_usecase.dart';
+import 'package:near_me/features/post/domain/usecases/get_post_i_liked_usecase.dart';
+import 'package:near_me/features/post/domain/usecases/get_posts_usecase.dart';
+import 'package:near_me/features/post/domain/usecases/get_user_posts.dart';
+import 'package:near_me/features/post/domain/usecases/like_post_usecase.dart';
+import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
+import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/features/profile/data/repository/profile_repo_impl.dart';
 import 'package:near_me/features/profile/domain/usecases/accept_conn_request_usecase.dart';
 import 'package:near_me/features/profile/domain/usecases/check_connection_request.dart';
@@ -250,5 +260,43 @@ Future<void> init() async {
   //bloc
   sl.registerFactory<NotificationBloc>(
     () => NotificationBloc(getNotificationsUsecase: sl()),
+  );
+
+  // POST FEATURE
+  //repostiroy
+  sl.registerLazySingleton<PostRepository>(
+    () => PostRepoImpl(sl()),
+  );
+  //usecase
+  sl.registerLazySingleton<CreatePostUsecase>(
+      () => CreatePostUsecase(postRepository: sl()));
+  sl.registerLazySingleton<GetMyPostUsecase>(
+    () => GetMyPostUsecase(postRepository: sl()),
+  );
+  sl.registerLazySingleton<GetPostsUsecase>(
+    () => GetPostsUsecase(postRepository: sl()),
+  );
+  sl.registerLazySingleton<GetUserPostsUsecase>(
+    () => GetUserPostsUsecase(postRepository: sl()),
+  );
+  sl.registerLazySingleton<GetPostILikedUsecase>(
+    () => GetPostILikedUsecase(postRepository: sl()),
+  );
+  sl.registerLazySingleton<LikePostUsecase>(
+    () => LikePostUsecase(postRepository: sl()),
+  );
+  // bloc
+  sl.registerFactory<PostBloc>(
+    () => PostBloc(
+        createPostUsecase: sl(),
+        getMyPostUsecase: sl(),
+        getUserPostsUsecase: sl()),
+  );
+  //HOMEBLOC
+  sl.registerFactory<HomePostBloc>(
+    () => HomePostBloc(
+        getPostsUsecase: sl(),
+        getPostILikedUsecase: sl(),
+        likePostUsecase: sl()),
   );
 }

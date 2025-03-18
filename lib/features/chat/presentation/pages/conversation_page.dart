@@ -106,7 +106,10 @@ class _ConversationPageState extends State<ConversationPage> {
       centerTitle: true,
       actions: [
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text("under development")));
+          },
           icon: const FaIcon(FontAwesomeIcons.ellipsisVertical),
         )
       ],

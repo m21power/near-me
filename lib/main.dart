@@ -20,6 +20,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/ThemeBloc/theme_bloc.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
+import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,7 +69,9 @@ class MainApp extends StatelessWidget {
         BlocProvider(create: (context) => sl<ConversationBloc>()),
         BlocProvider(create: (context) => sl<InternetBloc>()),
         BlocProvider(create: (context) => sl<HomeBloc>()),
-        BlocProvider(create: (context) => sl<NotificationBloc>())
+        BlocProvider(create: (context) => sl<NotificationBloc>()),
+        BlocProvider(create: (context) => sl<PostBloc>()),
+        BlocProvider(create: (context) => sl<HomePostBloc>())
       ],
       child: BlocBuilder<ThemeBloc, ThemeMode>(
         builder: (context, themeMode) {

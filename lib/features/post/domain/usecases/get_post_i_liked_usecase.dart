@@ -1,0 +1,13 @@
+import 'dart:collection';
+
+import 'package:dartz/dartz.dart';
+import 'package:near_me/core/error/failure.dart';
+import 'package:near_me/features/post/domain/repository/post_repository.dart';
+
+class GetPostILikedUsecase {
+  final PostRepository postRepository;
+  GetPostILikedUsecase({required this.postRepository});
+  Future<Either<Failure, HashSet<int>>> call() {
+    return postRepository.getPostILiked();
+  }
+}

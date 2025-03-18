@@ -4,28 +4,25 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:near_me/core/constants/user_constant.dart';
-import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/Auth/domain/entities/user_entities.dart';
 import 'package:near_me/features/location/domain/entities/user_entity_loc.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import '../../../profile/presentation/pages/user_profile_page.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
-
   @override
   _MapPageState createState() => _MapPageState();
 }
 
 class _MapPageState extends State<MapPage> {
   final MapController mapController = MapController();
-  LatLng myLocation = const LatLng(9.031859697470294, 38.763446899832886);
-  // LatLng myLocation = UserConstant().getLocation() ??
-  //     LatLng(9.031859697470294, 38.763446899832886);
+  // LatLng myLocation = const LatLng(9.031859697470294, 38.763446899832886);
+  LatLng myLocation = UserConstant().getLocation() ??
+      LatLng(9.031859697470294, 38.763446899832886);
   bool isLoading = false;
   List<UserLocEntity> userLoc = [];
 
@@ -40,16 +37,16 @@ class _MapPageState extends State<MapPage> {
             userLoc = state.nearbyUsers;
           });
         }
-        // if (UserConstant().getLocation() != myLocation &&
-        //     UserConstant().getLocation() != null) {
-        //   myLocation = UserConstant().getLocation()!;
-        //   Future.delayed(Duration(milliseconds: 200), () {
-        //     if (mounted) {
-        //       mapController.move(myLocation, 15);
-        //     }
-        //   });
-        //   isLoading = false;
-        // }
+        if (UserConstant().getLocation() != myLocation &&
+            UserConstant().getLocation() != null) {
+          myLocation = UserConstant().getLocation()!;
+          Future.delayed(Duration(milliseconds: 200), () {
+            if (mounted) {
+              mapController.move(myLocation, 15);
+            }
+          });
+          isLoading = false;
+        }
       },
       builder: (context, state) {
         if (isLoading) {

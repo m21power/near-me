@@ -12,6 +12,8 @@ import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conver
 import 'package:near_me/features/home/presentation/home.dart';
 import 'package:near_me/features/home/presentation/pages/top_bar.dart';
 import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
+import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 
 import '../../features/Auth/presentation/pages/login_page.dart';
 import '../../features/chat/presentation/bloc/chat_bloc.dart';
@@ -32,6 +34,8 @@ final GoRouter router = GoRouter(
             context.read<ChatBloc>().add(GetChatEvent());
             context.read<ConversationBloc>().add(GetConnectedUsersId());
             context.read<NotificationBloc>().add(GetNotificationEvent());
+            context.read<HomePostBloc>().add(GetPostsEvent());
+            context.read<HomePostBloc>().add(GetLikedPostsEvent());
             return TopBar();
           } else {
             return WelcomePage();
