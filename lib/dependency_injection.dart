@@ -90,6 +90,7 @@ Future<void> init() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
   sl.registerLazySingleton<FirebaseAppCheck>(() => FirebaseAppCheck.instance);
+
   await sl<FirebaseAppCheck>().activate(androidProvider: AndroidProvider.debug);
   sl.registerLazySingleton<FlutterSecureStorage>(() => FlutterSecureStorage());
   sl.registerLazySingleton<FirebaseDatabase>(() => FirebaseDatabase.instance);
@@ -288,15 +289,16 @@ Future<void> init() async {
   // bloc
   sl.registerFactory<PostBloc>(
     () => PostBloc(
-        createPostUsecase: sl(),
-        getMyPostUsecase: sl(),
-        getUserPostsUsecase: sl()),
+      createPostUsecase: sl(),
+      getMyPostUsecase: sl(),
+    ),
   );
   //HOMEBLOC
   sl.registerFactory<HomePostBloc>(
     () => HomePostBloc(
         getPostsUsecase: sl(),
         getPostILikedUsecase: sl(),
+        getUserPostsUsecase: sl(),
         likePostUsecase: sl()),
   );
 }

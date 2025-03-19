@@ -44,3 +44,22 @@ class LikePostsFailureState extends HomePostState {
   @override
   List<Object> get props => [message, posts, likedIds];
 }
+
+class GetUserPostsInitialState extends HomePostState {}
+
+class GetUserPostsSuccessState extends HomePostState {
+  final List<PostModel> posts;
+  final HashSet<int> likedIds;
+  GetUserPostsSuccessState(this.posts, this.likedIds);
+  @override
+  List<Object> get props => [posts, likedIds];
+}
+
+class GetUserPostsFailureState extends HomePostState {
+  final String message;
+  final List<PostModel> posts;
+  final HashSet<int> likedIds;
+  GetUserPostsFailureState(this.message, this.posts, this.likedIds);
+  @override
+  List<Object> get props => [message, posts, likedIds];
+}

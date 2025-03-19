@@ -28,6 +28,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       required this.checkConnectionRequestUsecase})
       : super(ProfileInitial()) {
     on<GetUserByIdEvent>((event, emit) async {
+      emit(ProfileInitial());
       var result = await getUserByIdUsecase(event.id);
       result.fold((l) => emit(GetUserByidFailedState(l.message)),
           (r) => emit(GetUserByIdSuccessState(r)));

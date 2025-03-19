@@ -149,25 +149,22 @@ GestureDetector profileMaker(UserLocEntity userLoc, BuildContext context) {
               context,
               MaterialPageRoute(
                   builder: (context) => UserProfilePage(
-                        user: UserModel(
-                            id: userLoc.userId,
-                            email: userLoc.email,
-                            university: userLoc.university,
-                            major: userLoc.major,
-                            name: userLoc.name,
-                            photoUrl: userLoc.photoUrl,
-                            backgroundUrl: userLoc.backgroundUrl,
-                            isEmailVerified: userLoc.isEmailVerified,
-                            password: userLoc.password,
-                            bio: userLoc.bio,
-                            fcmToken: userLoc.fcmToken,
-                            gender: userLoc.gender),
-                        userPosts: [],
+                      // user: UserModel(
+                      //     id: userLoc.userId,
+                      //     email: userLoc.email,
+                      //     university: userLoc.university,
+                      //     major: userLoc.major,
+                      //     name: userLoc.name,
+                      //     photoUrl: userLoc.photoUrl,
+                      //     backgroundUrl: userLoc.backgroundUrl,
+                      //     isEmailVerified: userLoc.isEmailVerified,
+                      //     password: userLoc.password,
+                      //     bio: userLoc.bio,
+                      //     fcmToken: userLoc.fcmToken,
+                      //     gender: userLoc.gender),
                       )))
-          : Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => MyProfilePage(userPosts: [])));
+          : Navigator.push(context,
+              MaterialPageRoute(builder: (context) => MyProfilePage()));
     },
     child: Stack(
       alignment: Alignment.center,

@@ -52,7 +52,7 @@ class LocationRepoImpl implements LocationRepository {
       return;
     }
 
-    yield* Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
+    yield* Stream.periodic(const Duration(hours: 5)).asyncMap((_) async {
       try {
         Position position = await Geolocator.getCurrentPosition();
         return Right<Failure, Position>(position); // Explicit type

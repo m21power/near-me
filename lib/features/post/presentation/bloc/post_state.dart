@@ -18,35 +18,3 @@ class CreatePostFailureState extends PostState {
 }
 
 class PostingState extends PostState {}
-
-class GetMyPostSuccessState extends PostState {
-  final List<PostModel> posts;
-  GetMyPostSuccessState(this.posts);
-  @override
-  List<Object> get props => [posts];
-}
-
-class GetMyPostFailureState extends PostState {
-  final String message;
-  GetMyPostFailureState(this.message);
-  @override
-  List<Object> get props => [message];
-}
-
-class GetMyPostsInitialState extends PostState {}
-
-class GetUserPostsInitialState extends PostState {}
-
-class GetUserPostsSuccessState extends PostState {
-  final List<PostModel> posts;
-  GetUserPostsSuccessState(this.posts);
-  @override
-  List<Object> get props => [posts];
-}
-
-class GetUserPostsFailureState extends PostState {
-  final String message;
-  GetUserPostsFailureState(this.message);
-  @override
-  List<Object> get props => [message];
-}

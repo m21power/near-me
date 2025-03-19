@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
+import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
 import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
@@ -19,6 +20,7 @@ import '../bloc/ThemeBloc/theme_bloc.dart';
 
 Drawer customDrawer(BuildContext context) {
   bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  var user = UserConstant().getUser();
   return Drawer(
     width: 250,
     child: ListView(
@@ -35,32 +37,30 @@ Drawer customDrawer(BuildContext context) {
                   children: [
                     GestureDetector(
                       onTap: () {
+                        context
+                            .read<HomePostBloc>()
+                            .add(GetUserPostEvent(UserConstant().getUserId()!));
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
-                          return MyProfilePage(
-                            userPosts: [],
-                          );
+                          return MyProfilePage();
                         }));
                       },
                       child: Column(
                         children: [
                           CircleAvatar(
                             radius: 40,
-                            backgroundImage:
-                                UserConstant().getUser()!.gender == 'male'
-                                    ? Image.asset('assets/male.png').image
-                                    : Image.asset('assets/woman.png').image,
+                            backgroundImage: user!.gender == 'male'
+                                ? Image.asset('assets/male.png').image
+                                : Image.asset('assets/woman.png').image,
                             foregroundImage:
-                                (UserConstant().getUser()!.photoUrl != null &&
-                                        UserConstant().getUser()!.photoUrl !=
-                                            '')
+                                (user!.photoUrl != null && user!.photoUrl != '')
                                     ? CachedNetworkImageProvider(
                                         cacheManager: MyCacheManager(),
-                                        UserConstant().getUser()!.photoUrl!)
+                                        user!.photoUrl!)
                                     : null,
                           ),
                           Text(
-                            UserConstant().getUser()!.name,
+                            user!.name,
                             style: Theme.of(context).textTheme.headlineMedium,
                           )
                         ],
@@ -86,11 +86,11 @@ Drawer customDrawer(BuildContext context) {
         ListTile(
           title: const Text('My Profile'),
           onTap: () async {
-            context.read<PostBloc>().add(GetMyPostEvent());
+            context
+                .read<HomePostBloc>()
+                .add(GetUserPostEvent(UserConstant().getUserId()!));
             Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return MyProfilePage(
-                userPosts: [],
-              );
+              return MyProfilePage();
             }));
           },
         ),

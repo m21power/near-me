@@ -1,14 +1,18 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:near_me/core/constants/constant.dart';
+import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/image_picker/image_picker.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/post/domain/enitities/post_entities.dart';
+import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
 import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
+import 'package:near_me/features/post/presentation/widgets/posts.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:near_me/features/profile/presentation/widgets/my_post.dart';
@@ -17,9 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 
 class MyProfilePage extends StatefulWidget {
-  final List<String> userPosts;
-
-  const MyProfilePage({super.key, required this.userPosts});
+  const MyProfilePage({super.key});
 
   @override
   _MyProfilePageState createState() => _MyProfilePageState();
@@ -29,7 +31,16 @@ class _MyProfilePageState extends State<MyProfilePage> {
   String? newProfileImage;
   String? newBackgroundImage;
   bool isImageChanged = false;
-  List<PostModel> myposts = [];
+  List<PostModel> userPosts = [];
+  HashSet<int> likedPostIds = HashSet<int>();
+
+  @override
+  void initState() {
+    context
+        .read<HomePostBloc>()
+        .add(GetUserPostEvent(UserConstant().getUserId()!));
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,70 +145,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           const SizedBox(height: 20),
 
                           // User Posts Section
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text("My Posts",
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold)),
-                                    IconButton(
-                                      onPressed: () async {
-                                        var result = await sl<ImagePath>()
-                                            .getImagePath();
-                                        result.fold((l) {
-                                          print("error occurred picking image");
-                                        }, (r) {
-                                          context
-                                              .read<PostBloc>()
-                                              .add(CreatePostEvent(r));
-                                        });
-                                      },
-                                      icon: Container(
-                                        width: 60,
-                                        height: 60,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary, // Set your button color
-                                          boxShadow: const [
-                                            BoxShadow(
-                                              color: Colors.black26,
-                                              offset: Offset(0, 2),
-                                              blurRadius: 4,
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.emoji_emotions_outlined,
-                                              size: 30,
-                                              color: Colors.white, // Icon color
-                                            ),
-                                            Positioned(
-                                              top: -1,
-                                              right: -1,
-                                              child: Icon(
-                                                Icons.add,
-                                                color: Colors.white,
-                                                size: 30,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )),
-                          ),
+                          postSection(context),
                         ],
                       ),
                     ),
@@ -210,54 +158,35 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       if (postState is CreatePostFailureState) {
                         showError("Failed to create post");
                       }
-                      if (postState is GetMyPostSuccessState) {
-                        myposts = postState.posts;
-                      }
                     },
                     builder: (context, postState) {
-                      if (postState is PostingState ||
-                          postState is GetMyPostsInitialState) {
+                      if (postState is PostingState) {
                         print(postState);
-                        return Center(
+                        return const Center(
                           child: CircularProgressIndicator(),
                         );
                       }
 
-                      return myPosts(myposts);
+                      return SizedBox();
                     },
                   ),
+                  BlocConsumer<HomePostBloc, HomePostState>(
+                      listener: (context, homePostState) {
+                    print("my profile: $homePostState");
+                    if (homePostState is GetUserPostsSuccessState) {
+                      userPosts = homePostState.posts;
+                      likedPostIds = homePostState.likedIds;
+                    }
+                    if (homePostState is GetUserPostsFailureState) {
+                      userPosts = homePostState.posts;
+                      likedPostIds = homePostState.likedIds;
+                    }
+                  }, builder: (context, homePostState) {
+                    return PostCard(
+                        posts: userPosts, likedPostIds: likedPostIds);
+                  }),
                   // Save Button (Only appears if an image is changed)
-                  if (isImageChanged)
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          isImageChanged = false;
-                          context.read<ProfileBloc>().add(
-                                UpdateProfileEvent(
-                                  profileImage:
-                                      newProfileImage ?? userModel['photoUrl'],
-                                  backgroundImage: newBackgroundImage ??
-                                      userModel['backgroundUrl'],
-                                  fullName: userModel['name'],
-                                  bio: userModel['bio'],
-                                  university: userModel['University'],
-                                  major: userModel['Major'],
-                                ),
-                              );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: const Text("Save Changes",
-                            style:
-                                TextStyle(fontSize: 16, color: Colors.white)),
-                      ),
-                    ),
+                  if (isImageChanged) imageChanged(context, userModel),
                   BlocBuilder<InternetBloc, InternetState>(
                     builder: (context, intState) {
                       if (intState is NoInternetConnectionState) {
@@ -284,6 +213,97 @@ class _MyProfilePageState extends State<MyProfilePage> {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Padding postSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Align(
+          alignment: Alignment.centerLeft,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("My Posts",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              IconButton(
+                onPressed: () async {
+                  var result = await sl<ImagePath>().getImagePath();
+                  result.fold((l) {
+                    print("error occurred picking image");
+                  }, (r) {
+                    context.read<PostBloc>().add(CreatePostEvent(r));
+                  });
+                },
+                icon: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary, // Set your button color
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: const Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        Icons.emoji_emotions_outlined,
+                        size: 30,
+                        color: Colors.white, // Icon color
+                      ),
+                      Positioned(
+                        top: -1,
+                        right: -1,
+                        child: Icon(
+                          Icons.add,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          )),
+    );
+  }
+
+  Padding imageChanged(BuildContext context, userModel) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: ElevatedButton(
+        onPressed: () {
+          isImageChanged = false;
+          context.read<ProfileBloc>().add(
+                UpdateProfileEvent(
+                  profileImage: newProfileImage ?? userModel['photoUrl'],
+                  backgroundImage:
+                      newBackgroundImage ?? userModel['backgroundUrl'],
+                  fullName: userModel['name'],
+                  bio: userModel['bio'],
+                  university: userModel['University'],
+                  major: userModel['Major'],
+                ),
+              );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: const Text("Save Changes",
+            style: TextStyle(fontSize: 16, color: Colors.white)),
       ),
     );
   }

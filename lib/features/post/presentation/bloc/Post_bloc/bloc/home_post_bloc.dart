@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:near_me/features/post/domain/usecases/get_post_i_liked_usecase.dart';
+import 'package:near_me/features/post/domain/usecases/get_user_posts.dart';
 import 'package:near_me/features/post/domain/usecases/like_post_usecase.dart';
 
 import '../../../../domain/enitities/post_entities.dart';
@@ -15,11 +16,14 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
   final GetPostsUsecase getPostsUsecase;
   final GetPostILikedUsecase getPostILikedUsecase;
   final LikePostUsecase likePostUsecase;
+  final GetUserPostsUsecase getUserPostsUsecase;
   List<PostModel> posts = [];
   HashSet<int> likedIds = HashSet<int>();
+  List<PostModel> userPosts = [];
   DateTime? lastPostTime;
   HomePostBloc(
       {required this.getPostsUsecase,
+      required this.getUserPostsUsecase,
       required this.getPostILikedUsecase,
       required this.likePostUsecase})
       : super(HomePostInitial()) {
@@ -41,9 +45,12 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
     on<GetLikedPostsEvent>(
       (event, emit) async {
         var result = await getPostILikedUsecase();
-        result.fold(
-            (l) => emit(GetPostsFailureState(l.message, posts, likedIds)), (r) {
+        result.fold((l) {
+          emit(GetPostsFailureState(l.message, posts, likedIds));
+          emit(GetUserPostsFailureState(l.message, userPosts, likedIds));
+        }, (r) {
           likedIds = r;
+          emit(GetUserPostsSuccessState(userPosts, likedIds));
           emit(GetPostsSuccessState(posts, likedIds));
         });
       },
@@ -57,6 +64,19 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
         }, (r) {
           add(GetLikedPostsEvent());
           // emit(LikePostsSuccessState(posts, likedIds));
+        });
+      },
+    );
+
+    on<GetUserPostEvent>(
+      (event, emit) async {
+        var result = await getUserPostsUsecase(event.userId);
+        result.fold(
+            (l) =>
+                emit(GetUserPostsFailureState(l.message, userPosts, likedIds)),
+            (r) {
+          userPosts = r;
+          emit(GetUserPostsSuccessState(userPosts, likedIds));
         });
       },
     );

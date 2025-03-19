@@ -14,3 +14,8 @@ final class LikePostEvent extends HomePostEvent {
   final int postId;
   LikePostEvent(this.postId);
 }
+
+final class GetUserPostEvent extends HomePostEvent {
+  final String userId;
+  GetUserPostEvent(this.userId);
+}

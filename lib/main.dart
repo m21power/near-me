@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,6 +42,8 @@ void main() async {
   // Initialize and open the cache database
   await FMTCObjectBoxBackend().initialise();
   await FMTCStore('mapStore').manage.create();
+  await sl<FirebaseAppCheck>()
+      .activate(androidProvider: AndroidProvider.playIntegrity);
 
   // await FirebaseFirestore.instance.terminate();
   // await FirebaseFirestore.instance.clearPersistence();

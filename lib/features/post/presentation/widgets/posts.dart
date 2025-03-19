@@ -4,9 +4,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/post/domain/enitities/post_entities.dart';
 import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
+import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
+import 'package:near_me/features/profile/presentation/pages/user_profile_page.dart';
 
 class PostCard extends StatefulWidget {
   final List<PostModel> posts;
@@ -50,30 +54,63 @@ class _PostCardState extends State<PostCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.grey[300],
-                          backgroundImage: post.gender == "male"
-                              ? Image.asset('assets/male.png').image
-                              : Image.asset('assets/woman.png').image,
-                          foregroundImage: (post.profilePic != '')
-                              ? CachedNetworkImageProvider(post.profilePic,
-                                  cacheManager: MyCacheManager())
-                              : null,
+                      GestureDetector(
+                        onTap: () {
+                          context
+                              .read<ProfileBloc>()
+                              .add(GetUserByIdEvent(post.userId));
+                          if (post.userId == UserConstant().getUserId()) {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => MyProfilePage()));
+                          } else {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => UserProfilePage()));
+                          }
+                        },
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.grey[300],
+                            backgroundImage: post.gender == "male"
+                                ? Image.asset('assets/male.png').image
+                                : Image.asset('assets/woman.png').image,
+                            foregroundImage: (post.profilePic != '')
+                                ? CachedNetworkImageProvider(post.profilePic,
+                                    cacheManager: MyCacheManager())
+                                : null,
+                          ),
+                          title: Text(post.name,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text(
+                              DateFormat('hh:mm a').format(post.createdAt)),
                         ),
-                        title: Text(post.name,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle:
-                            Text(DateFormat('hh:mm a').format(post.createdAt)),
                       ),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Image(
+                        child: CachedNetworkImage(
+                          imageUrl: post.postUrl,
+                          cacheManager: MyCacheManager(),
+                          placeholder: (context, url) => Container(
+                            width: double.infinity,
+                            height: 200,
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            width: double.infinity,
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: Icon(Icons.error),
+                            ),
+                          ),
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          image: CachedNetworkImageProvider(post.postUrl,
-                              cacheManager: MyCacheManager()),
                         ),
                       ),
                       Padding(
