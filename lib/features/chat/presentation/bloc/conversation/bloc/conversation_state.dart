@@ -10,17 +10,21 @@ final class ConversationInitial extends ConversationState {}
 
 final class GetMessageSuccessState extends ConversationState {
   final List<BubbleModel> messages;
+  final Map<String, UserStatus> userstatus;
   const GetMessageSuccessState({
     required this.messages,
+    required this.userstatus,
   });
 
   @override
-  List<Object?> get props => [messages];
+  List<Object?> get props => [messages, userstatus];
 }
 
 final class GetMessageFailureState extends ConversationState {
   final String message;
-  const GetMessageFailureState(this.message);
+  final Map<String, UserStatus> userstatus;
+
+  const GetMessageFailureState(this.message, this.userstatus);
 }
 
 final class SendMessageSuccessState extends ConversationState {

@@ -33,6 +33,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   bool isImageChanged = false;
   List<PostModel> userPosts = [];
   HashSet<int> likedPostIds = HashSet<int>();
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -173,6 +174,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   BlocConsumer<HomePostBloc, HomePostState>(
                       listener: (context, homePostState) {
                     print("my profile: $homePostState");
+                    if (homePostState is GetUserPostsInitialState) {
+                      isLoading = true;
+                    } else {
+                      isLoading = false;
+                    }
                     if (homePostState is GetUserPostsSuccessState) {
                       userPosts = homePostState.posts;
                       likedPostIds = homePostState.likedIds;
@@ -183,7 +189,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
                     }
                   }, builder: (context, homePostState) {
                     return PostCard(
-                        posts: userPosts, likedPostIds: likedPostIds);
+                      posts: userPosts,
+                      likedPostIds: likedPostIds,
+                      isLoading: isLoading,
+                    );
                   }),
                   // Save Button (Only appears if an image is changed)
                   if (isImageChanged) imageChanged(context, userModel),
@@ -237,8 +246,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   });
                 },
                 icon: Container(
-                  width: 60,
-                  height: 60,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Theme.of(context)
@@ -259,15 +268,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
                         Icons.emoji_emotions_outlined,
                         size: 30,
                         color: Colors.white, // Icon color
-                      ),
-                      Positioned(
-                        top: -1,
-                        right: -1,
-                        child: Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 30,
-                        ),
                       ),
                     ],
                   ),

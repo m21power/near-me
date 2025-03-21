@@ -96,7 +96,10 @@ Drawer customDrawer(BuildContext context) {
         ),
         ListTile(
           title: const Text('Connections'),
-          onTap: () {},
+          onTap: () {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text("Coming soon ...")));
+          },
         ),
         ListTile(
           title: const Text('About'),

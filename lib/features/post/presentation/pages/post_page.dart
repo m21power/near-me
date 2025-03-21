@@ -19,72 +19,91 @@ class PostPage extends StatefulWidget {
 class _PostPageState extends State<PostPage> {
   List<PostModel> posts = [];
   HashSet<int> likedPostIds = HashSet<int>();
+  bool isLoading = false;
+  Future<void> _onRefresh() async {
+    context.read<HomePostBloc>().add(GetPostsEvent());
+    context.read<HomePostBloc>().add(GetLikedPostsEvent());
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocConsumer<HomePostBloc, HomePostState>(
-        listener: (context, postState) {
-          if (postState is GetPostsFailureState) {
-            showError(postState.message);
-          }
-          if (postState is LikePostsFailureState) {
-            showError(postState.message);
-          }
-          print("this post");
-          print(posts);
-        },
-        builder: (context, postState) {
-          print("*************************");
-          print(postState);
-          if (postState is GetPostsSuccessState) {
-            posts = postState.posts;
-            if (postState.likedIds.isNotEmpty) {
-              likedPostIds = postState.likedIds;
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: Scaffold(
+        body: BlocConsumer<HomePostBloc, HomePostState>(
+          listener: (context, postState) {
+            if (postState is GetPostLoadingState) {
+              isLoading = true;
+            } else {
+              isLoading = false;
             }
-          }
-          if (postState is GetPostsFailureState) {
-            if (postState.posts.isNotEmpty) {
+            if (postState is GetPostsFailureState) {
+              showError(postState.message);
+            }
+            if (postState is LikePostsFailureState) {
+              showError(postState.message);
+            }
+            print("this post");
+            print(posts);
+          },
+          builder: (context, postState) {
+            print("*************************");
+            print(postState);
+            print(isLoading);
+            if (postState is GetPostsSuccessState) {
               posts = postState.posts;
+              if (postState.likedIds.isNotEmpty) {
+                likedPostIds = postState.likedIds;
+              }
             }
-            if (postState.likedIds.isNotEmpty) {
+            if (postState is GetPostsFailureState) {
+              if (postState.posts.isNotEmpty) {
+                posts = postState.posts;
+              }
+              if (postState.likedIds.isNotEmpty) {
+                likedPostIds = postState.likedIds;
+              }
+            }
+            if (postState is LikePostsSuccessState) {
+              posts = postState.posts;
               likedPostIds = postState.likedIds;
             }
-          }
-          if (postState is LikePostsSuccessState) {
-            posts = postState.posts;
-            likedPostIds = postState.likedIds;
-          }
-          if (postState is LikePostsFailureState) {
-            posts = postState.posts;
-            likedPostIds = postState.likedIds;
-          }
-          return Column(
-            children: [
-              PostCard(posts: posts, likedPostIds: likedPostIds),
-              BlocBuilder<InternetBloc, InternetState>(
-                builder: (context, intState) {
-                  if (intState is NoInternetConnectionState) {
-                    return const Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(width: 10),
-                            Text('Connecting...'),
-                          ],
+            if (postState is LikePostsFailureState) {
+              posts = postState.posts;
+              likedPostIds = postState.likedIds;
+            }
+            return Column(
+              children: [
+                PostCard(
+                  posts: posts,
+                  likedPostIds: likedPostIds,
+                  isLoading: isLoading,
+                ),
+                BlocBuilder<InternetBloc, InternetState>(
+                  builder: (context, intState) {
+                    if (intState is NoInternetConnectionState) {
+                      return const Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(width: 10),
+                              Text('Connecting...'),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }
-                  return SizedBox();
-                },
-              )
-            ],
-          );
-        },
+                      );
+                    }
+                    return SizedBox();
+                  },
+                )
+              ],
+            );
+          },
+        ),
       ),
     );
   }

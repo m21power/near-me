@@ -45,8 +45,8 @@ void main() async {
   await sl<FirebaseAppCheck>()
       .activate(androidProvider: AndroidProvider.playIntegrity);
 
-  // await FirebaseFirestore.instance.terminate();
-  // await FirebaseFirestore.instance.clearPersistence();
+  await FirebaseFirestore.instance.terminate();
+  await FirebaseFirestore.instance.clearPersistence();
 
   runApp(AppLifecycleObserver(child: const MainApp()));
 }

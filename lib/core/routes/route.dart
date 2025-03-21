@@ -14,6 +14,7 @@ import 'package:near_me/features/home/presentation/pages/top_bar.dart';
 import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
 import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
+import 'package:near_me/splash_screen.dart';
 
 import '../../features/Auth/presentation/pages/login_page.dart';
 import '../../features/chat/presentation/bloc/chat_bloc.dart';
@@ -37,8 +38,10 @@ final GoRouter router = GoRouter(
             context.read<HomePostBloc>().add(GetPostsEvent());
             context.read<HomePostBloc>().add(GetLikedPostsEvent());
             return TopBar();
-          } else {
+          } else if (state is AuthLoggedInFailedState) {
             return WelcomePage();
+          } else {
+            return SplashScreen();
           }
         });
       },

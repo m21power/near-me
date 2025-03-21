@@ -36,13 +36,13 @@ class PostModel {
   factory PostModel.fromMap(Map<String, dynamic> map) {
     return PostModel(
       postId: map['id'] as int,
-      userId: map['userId'] as String,
-      postUrl: map['postUrl'] as String,
+      userId: map['userId'] ?? '',
+      postUrl: map['postUrl'] ?? '',
       likeCount: map['likeCount'] as int,
-      name: map['name'] as String,
-      gender: map['gender'] as String,
+      name: map['name'] ?? '',
+      gender: map['gender'] ?? '',
       profilePic: map['profilePic'],
-      createdAt: DateTime.parse(map['createdAt'] as String),
+      createdAt: DateTime.parse(map['createdAt'] ?? DateTime.now()),
     );
   }
 

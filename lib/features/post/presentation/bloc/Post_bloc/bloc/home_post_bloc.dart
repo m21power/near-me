@@ -30,6 +30,7 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
     on<GetPostsEvent>(
       (event, emit) async {
         var lastTime;
+        emit(GetPostLoadingState());
         if (lastPostTime == null) {
           lastTime = DateTime.now();
         }
@@ -44,6 +45,8 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
     );
     on<GetLikedPostsEvent>(
       (event, emit) async {
+        emit(GetPostLoadingState());
+
         var result = await getPostILikedUsecase();
         result.fold((l) {
           emit(GetPostsFailureState(l.message, posts, likedIds));
@@ -70,6 +73,7 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
 
     on<GetUserPostEvent>(
       (event, emit) async {
+        emit(GetUserPostsInitialState());
         var result = await getUserPostsUsecase(event.userId);
         result.fold(
             (l) =>

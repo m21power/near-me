@@ -63,3 +63,5 @@ class GetUserPostsFailureState extends HomePostState {
   @override
   List<Object> get props => [message, posts, likedIds];
 }
+
+final class GetPostLoadingState extends HomePostState {}

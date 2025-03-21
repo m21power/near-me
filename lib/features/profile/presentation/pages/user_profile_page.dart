@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/core/shimmer_effect.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/presentation/pages/conversation_page.dart';
 import 'package:near_me/features/post/domain/enitities/post_entities.dart';
@@ -28,6 +29,7 @@ bool didNotAcceptTheRequestYet = false;
 UserModel? userModel;
 List<PostModel> userPosts = [];
 HashSet<int> likedPostIds = HashSet<int>();
+bool isLoading = true;
 
 class _UserProfilePageState extends State<UserProfilePage> {
   @override
@@ -153,9 +155,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           },
           builder: (context, state) {
             if (state is ProfileInitial || userModel == null) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
+              return ShimmerProfilePage();
             }
             return Column(
               children: [
@@ -176,12 +176,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         const SizedBox(height: 5),
                         Text(
                             userModel!.university == ''
-                                ? 'Add University/College'
+                                ? 'No University/College available'
                                 : userModel!.university,
                             style: const TextStyle(fontSize: 16)),
                         Text(
                             userModel!.major == ''
-                                ? 'Add Major'
+                                ? 'No major available'
                                 : userModel!.major,
                             style: const TextStyle(fontSize: 16)),
 
@@ -223,12 +223,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     userPosts = homePostState.posts;
                     likedPostIds = homePostState.likedIds;
                   }
+                  if (homePostState is GetUserPostsInitialState) {
+                    isLoading = true;
+                  } else {
+                    isLoading = false;
+                  }
                   if (homePostState is GetUserPostsFailureState) {
                     userPosts = homePostState.posts;
                     likedPostIds = homePostState.likedIds;
                   }
                 }, builder: (context, homePostState) {
-                  return PostCard(posts: userPosts, likedPostIds: likedPostIds);
+                  return PostCard(
+                    posts: userPosts,
+                    likedPostIds: likedPostIds,
+                    isLoading: isLoading,
+                  );
                 }),
               ],
             );

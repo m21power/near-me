@@ -40,7 +40,7 @@ class PostRepoImpl implements PostRepository {
             message: "Failed to create post, please try again later"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(message: "unable to get post"));
     }
   }
 
@@ -62,7 +62,7 @@ class PostRepoImpl implements PostRepository {
         return const Left(ServerFailure(message: "unable to access the post"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(message: "unable to get post"));
     }
   }
 
@@ -85,7 +85,7 @@ class PostRepoImpl implements PostRepository {
         return const Left(ServerFailure(message: "unable to access the post"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(message: "unable to get post"));
     }
   }
 
@@ -106,7 +106,7 @@ class PostRepoImpl implements PostRepository {
         return const Left(ServerFailure(message: "unable to access the post"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(message: "unable to get post"));
     }
   }
 
@@ -125,7 +125,7 @@ class PostRepoImpl implements PostRepository {
         return Left(ServerFailure(message: "unable to get post i liked"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(message: "unable to get post"));
     }
   }
 

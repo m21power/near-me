@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/core/shimmer_effect.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/post/domain/enitities/post_entities.dart';
 import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
@@ -13,9 +14,14 @@ import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart
 import 'package:near_me/features/profile/presentation/pages/user_profile_page.dart';
 
 class PostCard extends StatefulWidget {
+  final bool isLoading;
   final List<PostModel> posts;
   final HashSet<int> likedPostIds;
-  const PostCard({Key? key, required this.posts, required this.likedPostIds})
+  const PostCard(
+      {Key? key,
+      required this.posts,
+      required this.likedPostIds,
+      required this.isLoading})
       : super(key: key);
 
   @override
@@ -37,123 +43,141 @@ class _PostCardState extends State<PostCard> {
   Widget build(BuildContext context) {
     return Expanded(
       flex: 3,
-      child: widget.posts.isEmpty
-          ? const Center(child: Text("No posts yet"))
-          : ListView.builder(
-              itemCount: widget.posts.length,
-              itemBuilder: (context, index) {
-                final post = widget.posts[index];
-                final bool isLiked = widget.likedPostIds.contains(post.postId);
+      child: widget.isLoading
+          ? ShimmerScreenPost()
+          : widget.posts.isEmpty
+              ? const Center(child: Text("No posts yet"))
+              : ListView.builder(
+                  itemCount: widget.posts.length,
+                  itemBuilder: (context, index) {
+                    final post = widget.posts[index];
+                    final bool isLiked =
+                        widget.likedPostIds.contains(post.postId);
 
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          context
-                              .read<ProfileBloc>()
-                              .add(GetUserByIdEvent(post.userId));
-                          if (post.userId == UserConstant().getUserId()) {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => MyProfilePage()));
-                          } else {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => UserProfilePage()));
-                          }
-                        },
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.grey[300],
-                            backgroundImage: post.gender == "male"
-                                ? Image.asset('assets/male.png').image
-                                : Image.asset('assets/woman.png').image,
-                            foregroundImage: (post.profilePic != '')
-                                ? CachedNetworkImageProvider(post.profilePic,
-                                    cacheManager: MyCacheManager())
-                                : null,
-                          ),
-                          title: Text(post.name,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(
-                              DateFormat('hh:mm a').format(post.createdAt)),
-                        ),
-                      ),
-                      ClipRRect(
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
-                        child: CachedNetworkImage(
-                          imageUrl: post.postUrl,
-                          cacheManager: MyCacheManager(),
-                          placeholder: (context, url) => Container(
-                            width: double.infinity,
-                            height: 200,
-                            color: Colors.grey[300],
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            width: double.infinity,
-                            color: Colors.grey[300],
-                            child: const Center(
-                              child: Icon(Icons.error),
-                            ),
-                          ),
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    isLiked
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    color: isLiked ? Colors.red : null,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (isLiked) {
-                                        widget.likedPostIds.remove(post.postId);
-                                        post.likeCount -= 1;
-                                      } else {
-                                        widget.likedPostIds.add(post.postId);
-                                        post.likeCount += 1;
-                                      }
-                                      context
-                                          .read<HomePostBloc>()
-                                          .add(LikePostEvent(post.postId));
-                                    });
-                                  },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              context
+                                  .read<ProfileBloc>()
+                                  .add(GetUserByIdEvent(post.userId));
+                              if (post.userId == UserConstant().getUserId()) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => MyProfilePage()));
+                              } else {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            UserProfilePage()));
+                              }
+                            },
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.grey[300],
+                                backgroundImage: post.gender == "male"
+                                    ? Image.asset('assets/male.png').image
+                                    : Image.asset('assets/woman.png').image,
+                                foregroundImage: (post.profilePic != '')
+                                    ? CachedNetworkImageProvider(
+                                        post.profilePic,
+                                        cacheManager: MyCacheManager())
+                                    : null,
+                              ),
+                              title: Text(post.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              subtitle: Text(
+                                  DateFormat('hh:mm a').format(post.createdAt)),
+                            ),
+                          ),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: CachedNetworkImage(
+                              imageUrl: post.postUrl,
+                              cacheManager: MyCacheManager(),
+                              placeholder: (context, url) => Container(
+                                width: double.infinity,
+                                height: 200,
+                                color: Colors.grey[300],
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
                                 ),
-                                Text(post.likeCount > 0
-                                    ? formatLikeCount(post.likeCount)
-                                    : ""),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                width: double.infinity,
+                                color: Colors.grey[300],
+                                child: const Center(
+                                  child: Icon(Icons.error),
+                                ),
+                              ),
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        isLiked
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: isLiked ? Colors.red : null,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          if (isLiked) {
+                                            widget.likedPostIds
+                                                .remove(post.postId);
+                                            post.likeCount -= 1;
+                                          } else {
+                                            widget.likedPostIds
+                                                .add(post.postId);
+                                            post.likeCount += 1;
+                                          }
+                                          context
+                                              .read<HomePostBloc>()
+                                              .add(LikePostEvent(post.postId));
+                                        });
+                                      },
+                                    ),
+                                    Text(post.likeCount > 0
+                                        ? formatLikeCount(post.likeCount)
+                                        : ""),
+                                    IconButton(
+                                        icon: const Icon(Icons.comment),
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                                  content:
+                                                      Text("Coming soon ☺️")));
+                                        }),
+                                    IconButton(
+                                        icon: const Icon(Icons.share),
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                                  content:
+                                                      Text("Coming soon ☺️")));
+                                        }),
+                                  ],
+                                ),
                                 IconButton(
-                                    icon: const Icon(Icons.comment),
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text("Coming soon ☺️")));
-                                    }),
-                                IconButton(
-                                    icon: const Icon(Icons.share),
+                                    icon: const Icon(Icons.bookmark_border),
                                     onPressed: () {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(const SnackBar(
@@ -161,21 +185,12 @@ class _PostCardState extends State<PostCard> {
                                     }),
                               ],
                             ),
-                            IconButton(
-                                icon: const Icon(Icons.bookmark_border),
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text("Coming soon ☺️")));
-                                }),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    );
+                  },
+                ),
     );
   }
 }

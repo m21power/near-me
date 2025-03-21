@@ -13,6 +13,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       (event, emit) async {
         emit(SearchLoadState());
         var value = await searchUserUsecase(event.name);
+        print("99999999999999999999999999999");
+        print(value);
+        print("99999999999999999999999999999");
+
         value.fold((l) => emit(SearchUserFailureState(l.message)),
             (r) => emit(SearchUserSuccessState(r)));
       },

@@ -204,10 +204,11 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Stream<Map<String, UserStatus>> getUsersStatus(List<String> ids) {
     final FirebaseDatabase realTimeDB = FirebaseDatabase.instance;
-
+    print("list of ids");
+    print(ids);
+    print("list of ids");
     return realTimeDB.ref("users").onValue.map((event) {
       final usersMap = event.snapshot.value as Map<dynamic, dynamic>?;
-
       if (usersMap == null) return {}; // Return empty if no users found
 
       Map<String, UserStatus> statusMap = {};
@@ -220,45 +221,44 @@ class ChatRepositoryImpl implements ChatRepository {
           });
         }
       }
-
       return statusMap;
     });
   }
 
   @override
   Future<Either<Failure, List<String>>> getConnectedUsersId() async {
+    // return Right(
+    //     ["dmbfaY2JuZQxx26WBEdMj7XPMCj2", "uAbcTJRavsgmPYNlUpKIYh9kV4B2"]);
     if (await networkInfo.isConnected) {
-      return Right(
-          ['dmbfaY2JuZQxx26WBEdMj7XPMCj2', 'uAbcTJRavsgmPYNlUpKIYh9kV4B2']);
-      // try {
-      //   var userId = UserConstant().getUserId();
+      try {
+        var userId = UserConstant().getUserId();
 
-      //   // Fetch connections where the user is the sender
-      //   var fromConnectionsSnapshot = await firestore
-      //       .collection("connections")
-      //       .where("from", isEqualTo: userId)
-      //       .where("status", isEqualTo: "accepted")
-      //       .get();
+        // Fetch connections where the user is the sender
+        var fromConnectionsSnapshot = await firestore
+            .collection("connections")
+            .where("from", isEqualTo: userId)
+            .where("status", isEqualTo: "accepted")
+            .get();
 
-      //   // Fetch connections where the user is the receiver
-      //   var toConnectionsSnapshot = await firestore
-      //       .collection("connections")
-      //       .where("to", isEqualTo: userId)
-      //       .where("status", isEqualTo: "accepted")
-      //       .get();
+        // Fetch connections where the user is the receiver
+        var toConnectionsSnapshot = await firestore
+            .collection("connections")
+            .where("to", isEqualTo: userId)
+            .where("status", isEqualTo: "accepted")
+            .get();
 
-      //   // Combine both lists of connected users
-      //   List<String> connectedUsers = [
-      //     ...fromConnectionsSnapshot.docs
-      //         .map((doc) => doc.data()['to'] as String),
-      //     ...toConnectionsSnapshot.docs
-      //         .map((doc) => doc.data()['from'] as String)
-      //   ];
+        // Combine both lists of connected users
+        List<String> connectedUsers = [
+          ...fromConnectionsSnapshot.docs
+              .map((doc) => doc.data()['to'] as String),
+          ...toConnectionsSnapshot.docs
+              .map((doc) => doc.data()['from'] as String)
+        ];
 
-      //   return Right(connectedUsers);
-      // } catch (e) {
-      //   return Left(ServerFailure(message: e.toString()));
-      // }
+        return Right(connectedUsers);
+      } catch (e) {
+        return Left(ServerFailure(message: e.toString()));
+      }
     } else {
       return const Left(ServerFailure(message: "No Internet Connection"));
     }

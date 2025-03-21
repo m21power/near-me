@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/core/shimmer_effect.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/presentation/pages/conversation_page.dart';
@@ -24,7 +25,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    // context.read<ChatBloc>().add(GetConnectedUsersId());
+    context.read<ConversationBloc>().add(GetConnectedUsersId());
   }
 
   Future<void> _onRefresh() async {
@@ -47,7 +48,7 @@ class _ChatPageState extends State<ChatPage> {
           }
         }
         if (state is ChatInitial) {
-          return const Center(child: CircularProgressIndicator());
+          return ChatShimmerScreen();
         }
         if (chatEntities.isEmpty) {
           return const Center(child: Text("No chats"));

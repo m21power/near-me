@@ -9,6 +9,11 @@ import 'package:intl/intl.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
 
+import '../../../../core/constants/user_constant.dart';
+import '../../../profile/presentation/bloc/profile_bloc.dart';
+import '../../../profile/presentation/pages/my_profile_page.dart';
+import '../../../profile/presentation/pages/user_profile_page.dart';
+
 class ConversationPage extends StatefulWidget {
   final ChatEntities chatEntity;
   final bool amUser1;
@@ -29,6 +34,18 @@ class _ConversationPageState extends State<ConversationPage> {
   bool showEmoji = false;
   bool isLoading = false;
   bool allMessageFetched = false;
+  bool status = false;
+  Map<String, UserStatus> userStatus = {};
+  String _getUserStatus() {
+    final userId =
+        widget.amUser1 ? widget.chatEntity.user2Id : widget.chatEntity.user1Id;
+    if (userStatus.containsKey(userId)) {
+      return userStatus[userId]!.online
+          ? "Online"
+          : DateFormat('hh:mm a').format(userStatus[userId]!.lastSeen.toDate());
+    }
+    return "Offline";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +53,12 @@ class _ConversationPageState extends State<ConversationPage> {
       child: BlocConsumer<ConversationBloc, ConversationState>(
         listener: (context, state) {
           if (state is SendMessageSuccessState) {}
+          if (state is GetUserStatusSuccessState) {
+            userStatus = state.onlineStatus;
+          }
 
           if (state is GetMessageSuccessState) {
+            userStatus = state.userstatus;
             widget.amUser1
                 ? context
                     .read<ConversationBloc>()
@@ -113,42 +134,57 @@ class _ConversationPageState extends State<ConversationPage> {
           icon: const FaIcon(FontAwesomeIcons.ellipsisVertical),
         )
       ],
-      title: Row(
-        children: [
-          CircleAvatar(
-            backgroundImage: widget.amUser1
-                ? AssetImage(widget.chatEntity.user2Gender == 'male'
-                    ? "assets/male.png"
-                    : "assets/woman.png")
-                : AssetImage(widget.chatEntity.user1Gender == 'male'
-                    ? "assets/male.png"
-                    : "assets/woman.png"),
-            foregroundImage: widget.amUser1
-                ? (widget.chatEntity.user2ProfilePic.isNotEmpty
-                    ? NetworkImage(widget.chatEntity.user2ProfilePic)
-                    : null)
-                : (widget.chatEntity.user1ProfilePic.isNotEmpty
-                    ? NetworkImage(widget.chatEntity.user1ProfilePic)
-                    : null),
-          ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.amUser1
-                    ? widget.chatEntity.user2Name
-                    : widget.chatEntity.user1Name,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const Text(
-                "Online",
-                style: TextStyle(fontSize: 12, color: Colors.white70),
-              ),
-            ],
-          ),
-        ],
+      title: GestureDetector(
+        onTap: () {
+          var userid = widget.amUser1
+              ? widget.chatEntity.user2Id
+              : widget.chatEntity.user1Id;
+          context.read<ProfileBloc>().add(GetUserByIdEvent(userid));
+          if (userid == UserConstant().getUserId()) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => MyProfilePage()));
+          } else {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => UserProfilePage()));
+          }
+        },
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: widget.amUser1
+                  ? AssetImage(widget.chatEntity.user2Gender == 'male'
+                      ? "assets/male.png"
+                      : "assets/woman.png")
+                  : AssetImage(widget.chatEntity.user1Gender == 'male'
+                      ? "assets/male.png"
+                      : "assets/woman.png"),
+              foregroundImage: widget.amUser1
+                  ? (widget.chatEntity.user2ProfilePic.isNotEmpty
+                      ? NetworkImage(widget.chatEntity.user2ProfilePic)
+                      : null)
+                  : (widget.chatEntity.user1ProfilePic.isNotEmpty
+                      ? NetworkImage(widget.chatEntity.user1ProfilePic)
+                      : null),
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.amUser1
+                      ? widget.chatEntity.user2Name
+                      : widget.chatEntity.user1Name,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  _getUserStatus(),
+                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:near_me/core/shimmer_effect.dart';
+import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/pages/chat_page.dart';
 import 'package:near_me/features/home/domain/entities/entity.dart';
@@ -15,6 +18,11 @@ import 'package:near_me/features/notification/domain/entities/notif_entities.dar
 import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:near_me/features/notification/presentation/pages/notification_page.dart';
 import 'package:near_me/features/post/presentation/pages/post_page.dart';
+
+import '../../../../core/constants/user_constant.dart';
+import '../../../profile/presentation/bloc/profile_bloc.dart';
+import '../../../profile/presentation/pages/my_profile_page.dart';
+import '../../../profile/presentation/pages/user_profile_page.dart';
 
 class TopBar extends StatefulWidget {
   @override
@@ -44,16 +52,27 @@ class _TopBarState extends State<TopBar> {
         }
         return BlocConsumer<HomeBloc, HomeState>(
           listener: (context, homeState) async {
+            print("homestate : $homeState");
+            print(isSearching);
+            print(showSearchDialog);
+            if (homeState is SearchLoadState) {
+              isSearching = true;
+            } else {
+              isSearching = false;
+            }
             if (homeState is SearchUserSuccessState) {
               searchedUsers = homeState.user;
               showSearchDialog = true;
-              isSearching = false;
             }
 
-            if (showSearchDialog) {
-              var value = await showSearchedUsers();
+            if (showSearchDialog || isSearching) {
+              var value = await showSearchedUsers(isSearching);
               if (value == null || value == false) {
                 showSearchDialog = false;
+                isSearching = false;
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop(false);
+                }
               }
             }
             if (homeState is SearchUserFailureState) {}
@@ -84,6 +103,10 @@ class _TopBarState extends State<TopBar> {
                               .add(SearchUserEvent(searchController.text));
                           searchController.clear();
                           openSearchTextField = false;
+                        } else {
+                          setState(() {
+                            openSearchTextField = false;
+                          });
                         }
                       },
                       icon: Icon(Icons.search),
@@ -216,17 +239,11 @@ class _TopBarState extends State<TopBar> {
                     ],
                   ),
                 ),
-                body: homeState is SearchLoadState
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          backgroundColor: Colors.transparent,
-                        ),
-                      )
-                    : Container(
-                        child: TabBarView(
-                          children: [PostPage(), ChatPage(), MapPage()],
-                        ),
-                      ),
+                body: Container(
+                  child: TabBarView(
+                    children: [PostPage(), ChatPage(), MapPage()],
+                  ),
+                ),
               ),
             );
           },
@@ -269,10 +286,13 @@ class _TopBarState extends State<TopBar> {
     });
   }
 
-  Future<bool?> showSearchedUsers() async {
+  Future<bool?> showSearchedUsers(bool isSearching) async {
     return showDialog<bool>(
       context: context,
       builder: (context) {
+        // if (Navigator.of(context).canPop()) {
+        //   Navigator.of(context).pop();
+        // }
         return AlertDialog(
           title: const Text("Users"),
           content: SizedBox(
@@ -280,19 +300,27 @@ class _TopBarState extends State<TopBar> {
             height: MediaQuery.of(context)
                 .size
                 .height, // Set a fixed height for the list
-            child: searchedUsers.isNotEmpty
-                ? ListView.builder(
-                    itemCount: searchedUsers.length,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) => Profile(),
-                  )
-                : Center(
-                    child: Text("User not found"),
-                  ),
+            child: isSearching
+                ? ChatShimmerScreen()
+                : searchedUsers.isNotEmpty
+                    ? ListView.builder(
+                        itemCount: searchedUsers.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) =>
+                            Profile(searchedUsers[index]),
+                      )
+                    : Center(
+                        child: Text("User not found"),
+                      ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop(false);
+                }
+              },
               child: const Text("Close"),
             ),
           ],
@@ -301,14 +329,30 @@ class _TopBarState extends State<TopBar> {
     );
   }
 
-  Widget Profile() {
+  Widget Profile(SearchedUser user) {
     return ListTile(
-      onTap: () {},
+      onTap: () {
+        var userid = user.id;
+        context.read<ProfileBloc>().add(GetUserByIdEvent(userid));
+        if (userid == UserConstant().getUserId()) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => MyProfilePage()));
+        } else {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => UserProfilePage()));
+        }
+      },
       leading: CircleAvatar(
-        backgroundImage: AssetImage('assets/male.png'),
+        backgroundImage: user.gender == 'male'
+            ? AssetImage('assets/male.png')
+            : AssetImage('assets/woman.png'),
+        foregroundImage: user.profilePic != ''
+            ? CachedNetworkImageProvider(user.profilePic,
+                cacheManager: MyCacheManager())
+            : null,
       ),
-      title: Text('Mesay'),
-      subtitle: Text('Computer Science'),
+      title: Text(user.name),
+      subtitle: Text(user.major != "" ? user.major : "No major avialable"),
     );
   }
 }

@@ -24,6 +24,8 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   StreamSubscription? messageSubscription;
   StreamSubscription<Map<String, dynamic>>? statusSubscription;
 
+  Map<String, UserStatus>? userStatus;
+
   ConversationBloc({
     required this.getUsersStatusUsecase,
     required this.getConnectedUsersIdUsecase,
@@ -49,7 +51,9 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
         messageSubscription = getMessageUsecase(event.receiverId).listen(
           (value) async {
             await Future.delayed(Duration.zero); // Ensure async execution
-            emit(GetMessageSuccessState(messages: value));
+            emit(GetMessageSuccessState(
+                messages: value,
+                userstatus: userStatus ?? Map<String, UserStatus>()));
           },
           onError: (error) async {
             await Future.delayed(Duration.zero);
@@ -70,6 +74,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
       statusSubscription = getUsersStatusUsecase(event.ids).listen(
         (value) async {
           await Future.delayed(Duration.zero); // Ensure async execution
+          userStatus = value;
           emit(GetUserStatusSuccessState(value));
         },
         onError: (error) async {
