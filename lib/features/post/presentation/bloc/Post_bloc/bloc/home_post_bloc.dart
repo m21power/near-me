@@ -43,10 +43,13 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
         });
       },
     );
+    on<GetPost>(
+      (event, emit) {
+        emit(GetPostsSuccessState(posts, likedIds));
+      },
+    );
     on<GetLikedPostsEvent>(
       (event, emit) async {
-        emit(GetPostLoadingState());
-
         var result = await getPostILikedUsecase();
         result.fold((l) {
           emit(GetPostsFailureState(l.message, posts, likedIds));

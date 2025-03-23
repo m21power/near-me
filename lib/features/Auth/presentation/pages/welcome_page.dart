@@ -19,7 +19,7 @@ class WelcomePage extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(50.0),
-                child: Image.asset("assets/amenities.png"),
+                child: Image.asset("assets/logo.png"),
               ),
               Text(
                 "Welcome to Near Me",

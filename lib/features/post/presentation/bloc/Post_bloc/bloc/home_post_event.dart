@@ -19,3 +19,5 @@ final class GetUserPostEvent extends HomePostEvent {
   final String userId;
   GetUserPostEvent(this.userId);
 }
+
+final class GetPost extends HomePostEvent {}

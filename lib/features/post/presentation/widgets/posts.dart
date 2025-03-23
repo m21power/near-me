@@ -46,7 +46,20 @@ class _PostCardState extends State<PostCard> {
       child: widget.isLoading
           ? ShimmerScreenPost()
           : widget.posts.isEmpty
-              ? const Center(child: Text("No posts yet"))
+              ? ListView(
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      width: double.infinity,
+                      child: Center(
+                        child: const Text(
+                          "Oops! No posts, try to refresh the page",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
               : ListView.builder(
                   itemCount: widget.posts.length,
                   itemBuilder: (context, index) {
@@ -72,13 +85,14 @@ class _PostCardState extends State<PostCard> {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => MyProfilePage()));
+                                        builder: (context) =>
+                                            const MyProfilePage()));
                               } else {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                            UserProfilePage()));
+                                            const UserProfilePage()));
                               }
                             },
                             child: ListTile(

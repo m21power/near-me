@@ -31,7 +31,6 @@ final GoRouter router = GoRouter(
       builder: (context, state) {
         return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
           if (state is AuthLoggedInSuccessState) {
-            UserConstant().setUser();
             context.read<ChatBloc>().add(GetChatEvent());
             context.read<ConversationBloc>().add(GetConnectedUsersId());
             context.read<NotificationBloc>().add(GetNotificationEvent());

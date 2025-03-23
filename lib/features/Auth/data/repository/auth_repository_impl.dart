@@ -8,6 +8,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/core/constants/api_constant.dart';
 import 'package:near_me/core/constants/constant.dart';
+import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/core.dart';
 import 'package:near_me/core/error/failure.dart';
 import 'package:near_me/core/service/email_service.dart';
@@ -36,24 +37,28 @@ class AuthRepositoryImpl implements AuthRepository {
       this.firebaseMessaging);
   @override
   Future<Either<Failure, Unit>> requestOtp(String email) async {
-    if (await networkInfo.isConnected) {
-      String otp = generateRandomOTP();
-      var result = await EmailService.sendOtpEmail(email, otp);
+    try {
+      if (await networkInfo.isConnected) {
+        String otp = generateRandomOTP();
+        var result = await EmailService.sendOtpEmail(email, otp);
 
-      if (result.isRight()) {
-        const expirationDuration = const Duration(days: 1);
-        final otpData = {
-          "email": email,
-          "otp": otp,
-          "timestamp": FieldValue.serverTimestamp(),
-          "expiration_duraton": expirationDuration.inMilliseconds
-        };
-        await firestore.collection("otp_data").doc(email).set(otpData);
-        return const Right(unit);
+        if (result.isRight()) {
+          const expirationDuration = const Duration(days: 1);
+          final otpData = {
+            "email": email,
+            "otp": otp,
+            "timestamp": FieldValue.serverTimestamp(),
+            "expiration_duraton": expirationDuration.inMilliseconds
+          };
+          await firestore.collection("otp_data").doc(email).set(otpData);
+          return const Right(unit);
+        }
+        return const Left(ServerFailure(message: "Failed to send OTP"));
       }
-      return const Left(ServerFailure(message: "Failed to send OTP"));
+      return const Left(ServerFailure(message: "No internet connection"));
+    } catch (e) {
+      return Left(ServerFailure(message: "Unexpected error happened"));
     }
-    return const Left(ServerFailure(message: "No internet connection"));
   }
 
   @override
@@ -220,7 +225,8 @@ class AuthRepositoryImpl implements AuthRepository {
           var storedUserId =
               await secureStorage.read(key: Constant.userIdSecureStorageKey);
           print(storedUserId);
-
+          await UserConstant().initializeUser();
+          UserConstant().setUser();
           return Right(user);
         } else {
           return const Left(ServerFailure(message: "User not found"));
@@ -338,6 +344,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, Unit>> isLoggedIn() async {
     var value = await secureStorage.read(key: Constant.userIdSecureStorageKey);
     if (value != null) {
+      await UserConstant().initializeUser();
+      UserConstant().setUser();
+
       return const Right(unit);
     }
 

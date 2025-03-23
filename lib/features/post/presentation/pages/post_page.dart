@@ -21,8 +21,15 @@ class _PostPageState extends State<PostPage> {
   HashSet<int> likedPostIds = HashSet<int>();
   bool isLoading = false;
   Future<void> _onRefresh() async {
+    print("heeeeeeeeeeeeeeeeeeeeeeeere");
     context.read<HomePostBloc>().add(GetPostsEvent());
     context.read<HomePostBloc>().add(GetLikedPostsEvent());
+  }
+
+  @override
+  void initState() {
+    context.read<HomePostBloc>().add(GetPost());
+    return super.initState();
   }
 
   @override
@@ -32,7 +39,8 @@ class _PostPageState extends State<PostPage> {
       child: Scaffold(
         body: BlocConsumer<HomePostBloc, HomePostState>(
           listener: (context, postState) {
-            if (postState is GetPostLoadingState) {
+            if (postState is GetPostLoadingState ||
+                postState is HomePostInitial) {
               isLoading = true;
             } else {
               isLoading = false;

@@ -37,7 +37,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await init();
   await dotenv.load(fileName: ".env");
-  await UserConstant().initializeUser();
+  // await UserConstant().initializeUser();
   await NotificationService().initNotification();
   // Initialize and open the cache database
   await FMTCObjectBoxBackend().initialise();
@@ -45,8 +45,8 @@ void main() async {
   await sl<FirebaseAppCheck>()
       .activate(androidProvider: AndroidProvider.playIntegrity);
 
-  await FirebaseFirestore.instance.terminate();
-  await FirebaseFirestore.instance.clearPersistence();
+  // await FirebaseFirestore.instance.terminate();
+  // await FirebaseFirestore.instance.clearPersistence();
 
   runApp(AppLifecycleObserver(child: const MainApp()));
 }

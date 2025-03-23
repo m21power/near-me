@@ -1,21 +1,14 @@
-import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
-import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:near_me/features/profile/presentation/pages/about_page.dart';
 import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../core/constants/constant.dart';
-import '../../../../dependency_injection.dart';
-import '../../../Auth/domain/entities/user_entities.dart';
 import '../bloc/ThemeBloc/theme_bloc.dart';
 
 Drawer customDrawer(BuildContext context) {
@@ -49,9 +42,11 @@ Drawer customDrawer(BuildContext context) {
                         children: [
                           CircleAvatar(
                             radius: 40,
-                            backgroundImage: user!.gender == 'male'
-                                ? Image.asset('assets/male.png').image
-                                : Image.asset('assets/woman.png').image,
+                            backgroundImage: user == null
+                                ? Image.asset("assets/meme.png").image
+                                : user!.gender == 'male'
+                                    ? Image.asset('assets/male.png').image
+                                    : Image.asset('assets/woman.png').image,
                             foregroundImage:
                                 (user!.photoUrl != null && user!.photoUrl != '')
                                     ? CachedNetworkImageProvider(
@@ -103,7 +98,10 @@ Drawer customDrawer(BuildContext context) {
         ),
         ListTile(
           title: const Text('About'),
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => AboutPage()));
+          },
         ),
         BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
