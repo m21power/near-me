@@ -69,30 +69,30 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
         await markMessageUsecase(event.userId);
       },
     );
-    on<GetStatusEvent>((event, emit) async {
-      await statusSubscription?.cancel();
-      statusSubscription = getUsersStatusUsecase(event.ids).listen(
-        (value) async {
-          await Future.delayed(Duration.zero); // Ensure async execution
-          userStatus = value;
-          emit(GetUserStatusSuccessState(value));
-        },
-        onError: (error) async {
-          await Future.delayed(Duration.zero);
-          emit(GetUserStatusFailureState(error.toString()));
-        },
-      );
+    // on<GetStatusEvent>((event, emit) async {
+    //   await statusSubscription?.cancel();
+    //   statusSubscription = getUsersStatusUsecase(event.ids).listen(
+    //     (value) async {
+    //       await Future.delayed(Duration.zero); // Ensure async execution
+    //       userStatus = value;
+    //       emit(GetUserStatusSuccessState(value));
+    //     },
+    //     onError: (error) async {
+    //       await Future.delayed(Duration.zero);
+    //       emit(GetUserStatusFailureState(error.toString()));
+    //     },
+    //   );
 
-      await statusSubscription
-          ?.asFuture(); // Keeps handler alive until stream ends
-    });
-    on<GetConnectedUsersId>(
-      (event, emit) async {
-        var result = await getConnectedUsersIdUsecase();
-        result.fold((l) => emit(GetConnectedUsersIdFailureState(l.message)),
-            (r) => add(GetStatusEvent(r)));
-      },
-    );
+    //   await statusSubscription
+    //       ?.asFuture(); // Keeps handler alive until stream ends
+    // });
+    // on<GetConnectedUsersId>(
+    //   (event, emit) async {
+    //     var result = await getConnectedUsersIdUsecase();
+    //     result.fold((l) => emit(GetConnectedUsersIdFailureState(l.message)),
+    //         (r) => add(GetStatusEvent(r)));
+    //   },
+    // );
   }
   @override
   Future<void> close() {

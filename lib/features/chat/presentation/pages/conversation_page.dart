@@ -10,6 +10,7 @@ import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
 
 import '../../../../core/constants/user_constant.dart';
+import '../../../../core/constants/user_status.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../profile/presentation/pages/my_profile_page.dart';
 import '../../../profile/presentation/pages/user_profile_page.dart';
@@ -35,14 +36,14 @@ class _ConversationPageState extends State<ConversationPage> {
   bool isLoading = false;
   bool allMessageFetched = false;
   bool status = false;
-  Map<String, UserStatus> userStatus = {};
   String _getUserStatus() {
     final userId =
         widget.amUser1 ? widget.chatEntity.user2Id : widget.chatEntity.user1Id;
     if (userStatus.containsKey(userId)) {
-      return userStatus[userId]!.online
+      return userStatus[userId]['online']
           ? "Online"
-          : DateFormat('hh:mm a').format(userStatus[userId]!.lastSeen.toDate());
+          : DateFormat('hh:mm a')
+              .format(DateTime.parse(userStatus[userId]['lastSeen']));
     }
     return "Offline";
   }
@@ -53,12 +54,8 @@ class _ConversationPageState extends State<ConversationPage> {
       child: BlocConsumer<ConversationBloc, ConversationState>(
         listener: (context, state) {
           if (state is SendMessageSuccessState) {}
-          if (state is GetUserStatusSuccessState) {
-            userStatus = state.onlineStatus;
-          }
 
           if (state is GetMessageSuccessState) {
-            userStatus = state.userstatus;
             widget.amUser1
                 ? context
                     .read<ConversationBloc>()

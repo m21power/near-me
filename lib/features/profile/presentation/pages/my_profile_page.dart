@@ -15,7 +15,6 @@ import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/features/post/presentation/widgets/posts.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/edit_profile_page.dart';
-import 'package:near_me/features/profile/presentation/widgets/my_post.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
@@ -90,17 +89,23 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       child: Column(
                         children: [
                           // User Info
-                          Text(userModel['name'] ?? "anonymous",
+                          Text(
+                              (userModel['name'] == '' ||
+                                      userModel['name'] == null)
+                                  ? "anonymous"
+                                  : userModel['name'],
                               style: const TextStyle(
                                   fontSize: 22, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 5),
                           Text(
-                              userModel['university'] == ''
+                              (userModel['university'] == '' ||
+                                      userModel['university'] == null)
                                   ? "Add University/college"
                                   : userModel['university'],
                               style: Theme.of(context).textTheme.bodyLarge),
                           Text(
-                              userModel['major'] == ''
+                              (userModel['major'] == '' ||
+                                      userModel['major'] == null)
                                   ? "Add Major"
                                   : userModel['major'],
                               style: Theme.of(context).textTheme.bodyLarge),
@@ -111,7 +116,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Text(
-                              userModel['bio'] == ""
+                              (userModel['bio'] == "" ||
+                                      userModel['bio'] == null)
                                   ? "No bio available"
                                   : userModel['bio'],
                               textAlign: TextAlign.center,

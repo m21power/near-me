@@ -35,7 +35,7 @@ class AboutPage extends StatelessWidget {
                     isDarkMode
                         ? "assets/boy-darkmode.mp4.lottie.json"
                         : "assets/Boy going to school.mp4.lottie.json"),
-                SizedBox(
+                const SizedBox(
                   width: 20,
                 ),
                 LottieBuilder.asset(
@@ -84,7 +84,7 @@ class AboutPage extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
           ],

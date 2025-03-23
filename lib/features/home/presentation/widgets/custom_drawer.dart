@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
+import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/about_page.dart';
@@ -92,8 +93,7 @@ Drawer customDrawer(BuildContext context) {
         ListTile(
           title: const Text('Connections'),
           onTap: () {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text("Coming soon ...")));
+            context.read<HomeBloc>().add(GetMyConnectionsEvent());
           },
         ),
         ListTile(

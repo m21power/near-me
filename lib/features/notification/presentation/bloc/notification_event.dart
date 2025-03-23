@@ -5,3 +5,5 @@ sealed class NotificationEvent {
 }
 
 final class GetNotificationEvent extends NotificationEvent {}
+
+final class MarkNotificationEvent extends NotificationEvent {}

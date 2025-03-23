@@ -7,6 +7,7 @@ import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/presentation/pages/conversation_page.dart';
 
+import '../../../../core/constants/user_status.dart';
 import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import '../bloc/chat_bloc.dart';
 import '../bloc/conversation/bloc/conversation_bloc.dart';
@@ -20,12 +21,10 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   List<ChatEntities> chatEntities = [];
-  Map<String, UserStatus> userStatus = {};
   bool? amUser1;
   @override
   void initState() {
     super.initState();
-    context.read<ConversationBloc>().add(GetConnectedUsersId());
   }
 
   Future<void> _onRefresh() async {
@@ -54,11 +53,7 @@ class _ChatPageState extends State<ChatPage> {
           return const Center(child: Text("No chats"));
         }
         return BlocConsumer<ConversationBloc, ConversationState>(
-          listener: (context, convState) {
-            if (convState is GetUserStatusSuccessState) {
-              userStatus = convState.onlineStatus;
-            }
-          },
+          listener: (context, convState) {},
           builder: (context, convState) {
             return RefreshIndicator(
               onRefresh: _onRefresh,
@@ -75,11 +70,9 @@ class _ChatPageState extends State<ChatPage> {
                           isOnline: userStatus.isNotEmpty
                               ? (amUser1 == true
                                   ? userStatus[chatEntities[index].user2Id]
-                                          ?.online ??
-                                      false
+                                      ['online']
                                   : userStatus[chatEntities[index].user1Id]
-                                          ?.online ??
-                                      false)
+                                      ['online'])
                               : false,
                           amUser1: amUser1!,
                         );

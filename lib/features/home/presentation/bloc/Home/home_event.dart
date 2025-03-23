@@ -8,3 +8,5 @@ final class SearchUserEvent extends HomeEvent {
   final String name;
   SearchUserEvent(this.name);
 }
+
+final class GetMyConnectionsEvent extends HomeEvent {}

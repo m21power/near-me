@@ -16,6 +16,7 @@ import 'package:near_me/core/service/random_otp_generator.dart';
 import 'package:near_me/features/Auth/domain/repository/auth_repository.dart';
 
 import 'package:near_me/features/Auth/domain/entities/user_entities.dart';
+import 'package:near_me/features/home/data/repository/local/local_db.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -27,6 +28,7 @@ class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAppCheck firebaseAppCheck;
   final FlutterSecureStorage secureStorage;
   final FirebaseMessaging firebaseMessaging;
+  final DatabaseHelper localDb;
   AuthRepositoryImpl(
       this.firestore,
       this.firebaseAuth,
@@ -34,6 +36,7 @@ class AuthRepositoryImpl implements AuthRepository {
       this.networkInfo,
       this.firebaseAppCheck,
       this.secureStorage,
+      this.localDb,
       this.firebaseMessaging);
   @override
   Future<Either<Failure, Unit>> requestOtp(String email) async {
@@ -331,6 +334,7 @@ class AuthRepositoryImpl implements AuthRepository {
         await firebaseAuth.signOut();
         secureStorage.deleteAll();
         sharedPreferences.clear();
+        await localDb.clearDatabase();
         return const Right(unit);
       } catch (e) {
         return const Left(ServerFailure(message: "Failed to log out"));

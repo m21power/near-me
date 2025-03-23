@@ -4,4 +4,5 @@ import 'package:near_me/features/notification/domain/entities/notif_entities.dar
 
 abstract class NotificationRepository {
   Stream<List<NotificationModel>> getNotification();
+  Future<Unit> markNotification();
 }

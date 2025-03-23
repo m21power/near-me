@@ -13,6 +13,8 @@ import 'package:near_me/core/error/failure.dart';
 import 'package:near_me/core/network/network_info.dart';
 import 'package:near_me/core/util/public_id_from_url.dart';
 import 'package:near_me/features/Auth/domain/entities/user_entities.dart';
+import 'package:near_me/features/home/data/repository/local/local_db.dart';
+import 'package:near_me/features/home/domain/entities/connection_model.dart';
 import 'package:near_me/features/profile/domain/entities/profile_entity.dart';
 import 'package:near_me/features/profile/domain/repository/profile_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +27,7 @@ class ProfileRepoImpl extends ProfileRepository {
   final FirebaseAppCheck firebaseAppCheck;
   final FlutterSecureStorage secureStorage;
   final http.Client client;
+  final DatabaseHelper localDb;
   ProfileRepoImpl(
       this.firebaseAppCheck,
       this.firestore,
@@ -32,6 +35,7 @@ class ProfileRepoImpl extends ProfileRepository {
       this.networkInfo,
       this.secureStorage,
       this.sharedPreferences,
+      this.localDb,
       this.client);
 
   @override
@@ -307,12 +311,19 @@ class ProfileRepoImpl extends ProfileRepository {
       ids.sort();
       var conId = ids.join("_");
       Map<String, dynamic> connectModel = {
-        "from": userId,
-        "to": myId,
+        "users": [userId, myId],
         "acceptedAt": FieldValue.serverTimestamp()
       };
       await firestore.collection("connections").doc(conId).set(connectModel);
-
+      // saved to the local db
+      ConnectionModel conModel = ConnectionModel(
+          name: user2Model.name,
+          profilePic: user2Model.photoUrl ?? "",
+          id: userId,
+          gender: user2Model.gender,
+          isOnline: true,
+          lastSeen: DateTime.now().toIso8601String());
+      await localDb.insertConnection(conModel);
       Map<String, dynamic> notModel = {
         'accepted': true,
         "from": myId,
@@ -355,7 +366,6 @@ class ProfileRepoImpl extends ProfileRepository {
           doc.reference.delete();
         }
       });
-
       await firestore
           .collection("notifications")
           .doc(myId)

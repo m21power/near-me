@@ -4,15 +4,11 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/domain/usecases/get_chat_usecase.dart';
-import 'package:near_me/features/chat/domain/usecases/get_connected_users_id_usecase.dart';
-import 'package:near_me/features/chat/domain/usecases/get_users_status.dart';
 
 part 'chat_event.dart';
 part 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  String? userId;
-  Map<String, bool> onlineUsers = {};
   final GetChatUsecase getChatUsecase;
   StreamSubscription<List<ChatEntities>>? chatSubscription;
   ChatBloc({

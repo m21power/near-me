@@ -45,20 +45,6 @@ final class MessageErrorState extends ConversationState {
   List<Object?> get props => [message];
 }
 
-final class GetUserStatusSuccessState extends ConversationState {
-  final Map<String, UserStatus> onlineStatus;
-  GetUserStatusSuccessState(this.onlineStatus);
-  @override
-  List<Object> get props => [onlineStatus];
-}
-
-final class GetUserStatusFailureState extends ConversationState {
-  final String message;
-  GetUserStatusFailureState(this.message);
-  @override
-  List<Object> get props => [message];
-}
-
 final class GetConnectedUsersIdFailureState extends ConversationState {
   final String message;
   GetConnectedUsersIdFailureState(this.message);

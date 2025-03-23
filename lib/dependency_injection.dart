@@ -18,15 +18,19 @@ import 'package:near_me/features/chat/domain/usecases/mark_message_usecase.dart'
 import 'package:near_me/features/chat/domain/usecases/send_message_usecase.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
-import 'package:near_me/features/home/data/repository/home_repo_impl.dart';
+import 'package:near_me/features/home/data/repository/local/listen_conn_status.dart';
+import 'package:near_me/features/home/data/repository/local/local_db.dart';
+import 'package:near_me/features/home/data/repository/remote/home_repo_impl.dart';
 import 'package:near_me/features/home/domain/repository/home_repository.dart';
 import 'package:near_me/features/home/domain/usecases/check_internet_connection.dart';
+import 'package:near_me/features/home/domain/usecases/get_my_connection_usecase.dart';
 import 'package:near_me/features/home/domain/usecases/seach_user_usecase.dart';
 import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import 'package:near_me/features/notification/data/repository/notification_repo_impl.dart';
 import 'package:near_me/features/notification/domain/repository/notification_repo.dart';
 import 'package:near_me/features/notification/domain/usecases/get_notifications_usecase.dart';
+import 'package:near_me/features/notification/domain/usecases/mark_notification_as_seen.dart';
 import 'package:near_me/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:near_me/features/post/data/repository/post_repo_impl.dart';
 import 'package:near_me/features/post/domain/repository/post_repository.dart';
@@ -80,6 +84,11 @@ Future<void> init() async {
   //firebase app check
 
   //core
+  sl.registerSingleton<DatabaseHelper>(DatabaseHelper.instance);
+  sl.registerLazySingleton<ConnectionStatusListener>(
+    () => ConnectionStatusListener(
+        localDb: sl(), realTimeDb: sl(), firestore: sl()),
+  );
   sl.registerLazySingleton(() => http.Client());
   sl.registerLazySingleton<ImagePicker>(() => ImagePicker());
   sl.registerLazySingleton<ImagePath>(() => ImagePathImpl(imagePicker: sl()));
@@ -98,7 +107,7 @@ Future<void> init() async {
   //auth
   //repository
   sl.registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(sl(), sl(), sl(), sl(), sl(), sl(), sl()));
+      () => AuthRepositoryImpl(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
   //usecases
   sl.registerLazySingleton<ReqeustOtpUsecase>(() => ReqeustOtpUsecase(sl()));
   sl.registerLazySingleton<VerifyOtpUsecase>(() => VerifyOtpUsecase(sl()));
@@ -159,15 +168,8 @@ Future<void> init() async {
 
   //profile
   //repository
-  sl.registerLazySingleton<ProfileRepository>(() => ProfileRepoImpl(
-        sl(),
-        sl(),
-        sl(),
-        sl(),
-        sl(),
-        sl(),
-        sl(),
-      ));
+  sl.registerLazySingleton<ProfileRepository>(
+      () => ProfileRepoImpl(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
 
   //usecases
   sl.registerLazySingleton<GetUserByIdUsecase>(
@@ -238,29 +240,34 @@ Future<void> init() async {
 
   //repository
   sl.registerLazySingleton<HomeRepository>(
-      () => HomeRepoImpl(firestore: sl(), networkInfo: sl()));
+      () => HomeRepoImpl(firestore: sl(), networkInfo: sl(), localDb: sl()));
   //usecase
   sl.registerLazySingleton<SearchUserUsecase>(
       () => SearchUserUsecase(homeRepository: sl()));
+  sl.registerLazySingleton<GetMyConnectionUsecase>(
+    () => GetMyConnectionUsecase(homeRepository: sl()),
+  );
   //bloc
   sl.registerFactory<HomeBloc>(
-    () => HomeBloc(
-      searchUserUsecase: sl(),
-    ),
+    () => HomeBloc(searchUserUsecase: sl(), getMyConnectionUsecase: sl()),
   );
 
   //NOTIFICATION
   //repository
   sl.registerLazySingleton<NotificationRepository>(
-    () => NotificationRepoImpl(sl()),
+    () => NotificationRepoImpl(sl(), sl()),
   );
   //usecase
   sl.registerLazySingleton<GetNotificationsUsecase>(
     () => GetNotificationsUsecase(notificationRepository: sl()),
   );
+  sl.registerLazySingleton<MarkNotificationAsSeenUsecase>(
+    () => MarkNotificationAsSeenUsecase(notificationRepository: sl()),
+  );
   //bloc
   sl.registerFactory<NotificationBloc>(
-    () => NotificationBloc(getNotificationsUsecase: sl()),
+    () => NotificationBloc(
+        getNotificationsUsecase: sl(), markNotificationAsSeenUsecase: sl()),
   );
 
   // POST FEATURE

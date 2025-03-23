@@ -1,20 +1,16 @@
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:near_me/app_lifecycle.dart';
-import 'package:near_me/core/constants/constant.dart';
-import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/service/notification_service.dart';
 import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/bloc/conversation/bloc/conversation_bloc.dart';
+import 'package:near_me/features/home/data/repository/local/listen_conn_status.dart';
+import 'package:near_me/features/home/data/repository/local/local_db.dart';
 import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +21,8 @@ import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post
 import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
 import 'core/core.dart';
 import 'core/routes/route.dart';
@@ -33,7 +31,6 @@ import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await init();
   await dotenv.load(fileName: ".env");
@@ -47,6 +44,14 @@ void main() async {
 
   // await FirebaseFirestore.instance.terminate();
   // await FirebaseFirestore.instance.clearPersistence();
+  // print("waiting ----------------------------------------");
+  // var databasesPath = await getDatabasesPath();
+  // String dbPath =
+  //     join(databasesPath, 'connections.db'); // Replace with your actual DB name
+  // print("Database Path: $dbPath");
+  // var temp = await sl<DatabaseHelper>().getAllConnections();
+  // if (temp.isNotEmpty) print(temp[0].toJson());
+  sl<ConnectionStatusListener>().listenToConnectionStatus();
 
   runApp(AppLifecycleObserver(child: const MainApp()));
 }

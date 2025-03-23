@@ -11,16 +11,32 @@ final class HomeInitial extends HomeState {}
 
 final class SearchUserSuccessState extends HomeState {
   final List<SearchedUser> user;
-  SearchUserSuccessState(this.user);
+  const SearchUserSuccessState(this.user);
   @override
   List<Object> get props => [user];
 }
 
 final class SearchUserFailureState extends HomeState {
   final String message;
-  SearchUserFailureState(this.message);
+  const SearchUserFailureState(this.message);
   @override
   List<Object> get props => [message];
 }
 
 final class SearchLoadState extends HomeState {}
+
+final class GetMyConnectionsLoadingState extends HomeState {}
+
+final class GetMyConnectionsSuccessState extends HomeState {
+  final List<ConnectionModel> users;
+  const GetMyConnectionsSuccessState({required this.users});
+  @override
+  List<Object> get props => [users];
+}
+
+final class GetMyConnectionsFailureState extends HomeState {
+  final String message;
+  const GetMyConnectionsFailureState({required this.message});
+  @override
+  List<Object> get props => [message];
+}

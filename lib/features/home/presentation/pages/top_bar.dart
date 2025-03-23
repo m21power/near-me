@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
+import 'package:near_me/core/constants/user_status.dart';
 import 'package:near_me/core/shimmer_effect.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:near_me/features/chat/presentation/pages/chat_page.dart';
+import 'package:near_me/features/home/domain/entities/connection_model.dart';
 import 'package:near_me/features/home/domain/entities/entity.dart';
 import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
 import 'package:near_me/features/home/presentation/widgets/custom_drawer.dart';
@@ -38,9 +41,12 @@ class _TopBarState extends State<TopBar> {
   List<NotificationModel> notiModels = [];
   TextEditingController searchController = TextEditingController();
   List<SearchedUser> searchedUsers = [];
+  List<ConnectionModel> myConnection = [];
   bool showDial = false;
   bool showSearchDialog = false;
   bool isSearching = false;
+  bool showConnDialog = false;
+  bool myConLoadStae = false;
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LocationBloc, LocationState>(
@@ -64,6 +70,15 @@ class _TopBarState extends State<TopBar> {
               searchedUsers = homeState.user;
               showSearchDialog = true;
             }
+            if (homeState is GetMyConnectionsLoadingState) {
+              myConLoadStae = true;
+            } else {
+              myConLoadStae = false;
+            }
+            if (homeState is GetMyConnectionsSuccessState) {
+              myConnection = homeState.users;
+              showConnDialog = true;
+            }
 
             if (showSearchDialog || isSearching) {
               var value = await showSearchedUsers(isSearching);
@@ -75,7 +90,19 @@ class _TopBarState extends State<TopBar> {
                 }
               }
             }
+            if (showConnDialog || myConLoadStae) {
+              var value = await myConnectionsDialog(isSearching, myConnection);
+              if (value == null || value == false) {
+                myConLoadStae = false;
+                showConnDialog = false;
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop(false);
+                }
+              }
+            }
+
             if (homeState is SearchUserFailureState) {}
+            if (homeState is GetMyConnectionsFailureState) {}
           },
           builder: (context, homeState) {
             return DefaultTabController(
@@ -353,6 +380,77 @@ class _TopBarState extends State<TopBar> {
       ),
       title: Text(user.name),
       subtitle: Text(user.major != "" ? user.major : "No major avialable"),
+    );
+  }
+
+  Future<bool?> myConnectionsDialog(
+      bool isSearching, List<ConnectionModel> users) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("My Connections"),
+          content: SizedBox(
+            width: double.maxFinite, // Makes dialog width flexible
+            height: MediaQuery.of(context)
+                .size
+                .height, // Set a fixed height for the list
+            child: isSearching
+                ? ChatShimmerScreen()
+                : users.isNotEmpty
+                    ? ListView.builder(
+                        itemCount: users.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) =>
+                            myConnectionsProfile(users[index]),
+                      )
+                    : const Center(
+                        child: Text("No connection yet"),
+                      ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop(false);
+                }
+              },
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget myConnectionsProfile(ConnectionModel user) {
+    return ListTile(
+      onTap: () {
+        var userid = user.id;
+        context.read<ProfileBloc>().add(GetUserByIdEvent(userid));
+        if (userid == UserConstant().getUserId()) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => MyProfilePage()));
+        } else {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => UserProfilePage()));
+        }
+      },
+      leading: CircleAvatar(
+        backgroundImage: user.gender == 'male'
+            ? const AssetImage('assets/male.png')
+            : const AssetImage('assets/woman.png'),
+        foregroundImage: user.profilePic != ''
+            ? CachedNetworkImageProvider(user.profilePic,
+                cacheManager: MyCacheManager())
+            : null,
+      ),
+      title: Text(user.name),
+      subtitle: Text(userStatus[user.id]['online']
+          ? "Online"
+          : DateFormat('hh:mm a')
+              .format(DateTime.parse(userStatus[user.id]['lastSeen']))),
     );
   }
 }

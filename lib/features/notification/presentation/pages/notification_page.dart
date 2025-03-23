@@ -30,6 +30,7 @@ class _NotificationPageState extends State<NotificationPage> {
         if (notiState is GetNotificationSuccessState) {
           if (notiState.notification.isNotEmpty) {
             widget.notiModels = notiState.notification;
+            context.read<NotificationBloc>().add(MarkNotificationEvent());
           } else {
             context.read<NotificationBloc>().add(GetNotificationEvent());
           }

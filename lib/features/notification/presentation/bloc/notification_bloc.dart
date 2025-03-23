@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:near_me/features/notification/domain/entities/notif_entities.dart';
 import 'package:near_me/features/notification/domain/usecases/get_notifications_usecase.dart';
+import 'package:near_me/features/notification/domain/usecases/mark_notification_as_seen.dart';
 
 part 'notification_event.dart';
 part 'notification_state.dart';
@@ -11,7 +12,10 @@ part 'notification_state.dart';
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   StreamSubscription<List<NotificationModel>>? notifictionStream;
   final GetNotificationsUsecase getNotificationsUsecase;
-  NotificationBloc({required this.getNotificationsUsecase})
+  final MarkNotificationAsSeenUsecase markNotificationAsSeenUsecase;
+  NotificationBloc(
+      {required this.getNotificationsUsecase,
+      required this.markNotificationAsSeenUsecase})
       : super(NotificationInitial()) {
     on<GetNotificationEvent>(
       (event, emit) async {
@@ -36,7 +40,13 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
             ?.asFuture(); // Keeps handler alive until stream ends
       },
     );
+    on<MarkNotificationEvent>(
+      (event, emit) async {
+        await markNotificationAsSeenUsecase();
+      },
+    );
   }
+
   @override
   Future<void> close() {
     notifictionStream?.cancel();
