@@ -465,6 +465,35 @@ class _MyProfilePageState extends State<MyProfilePage> {
             child: const Icon(Icons.camera_alt, color: Colors.black),
           ),
         ),
+// Container(
+//   width: 110, // Adjusted for border
+//   height: 110,
+//   decoration: BoxDecoration(
+//     shape: BoxShape.circle,
+//     gradient: LinearGradient(
+//       colors: [Colors.purple, Colors.blue], // Change to your preferred colors
+//       begin: Alignment.topLeft,
+//       end: Alignment.bottomRight,
+//     ),
+//   ),
+//   child: Padding(
+//     padding: const EdgeInsets.all(3), // Border thickness
+//     child: CircleAvatar(
+//       radius: 50,
+//       backgroundColor: Colors.white, // Avoids color mixing
+//       backgroundImage: user == null
+//           ? const AssetImage("assets/logo.png")
+//           : user!.gender == 'male'
+//               ? const AssetImage('assets/male.png')
+//               : const AssetImage('assets/woman.png'),
+//       foregroundImage: (user?.photoUrl != null && user?.photoUrl != '')
+//           ? CachedNetworkImageProvider(
+//               cacheManager: MyCacheManager(),
+//               user!.photoUrl!)
+//           : null,
+//     ),
+//   ),
+// )
 
         // Profile Image Section
         Positioned(
@@ -472,15 +501,33 @@ class _MyProfilePageState extends State<MyProfilePage> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundImage:
-                    userModel["photoUrl"] != null && userModel["photoUrl"] != ""
+              Container(
+                width: 100,
+                height: 100,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.purple,
+                      Colors.blue
+                    ], // Change to your preferred colors
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: userModel["photoUrl"] != null &&
+                            userModel["photoUrl"] != ""
                         ? CachedNetworkImageProvider(userModel["photoUrl"],
                             cacheManager: MyCacheManager())
                         : userModel['gender'] == 'male'
                             ? const AssetImage("assets/male.png")
                             : const AssetImage("assets/woman.png"),
+                  ),
+                ),
               ),
 
               // Change Profile Image Button

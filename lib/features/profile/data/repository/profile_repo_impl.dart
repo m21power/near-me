@@ -67,8 +67,8 @@ class ProfileRepoImpl extends ProfileRepository {
       String? major) async {
     if (await networkInfo.isConnected) {
       try {
-        String? userId =
-            await secureStorage.read(key: Constant.userIdSecureStorageKey);
+        var uri = Uri.parse('${ApiConstant.POST_BASE_URL}/update-profile');
+        String? userId = UserConstant().getUserId();
         if (userId != null) {
           var user = await firestore.collection("users").doc(userId).get();
           if (user.exists) {
@@ -76,26 +76,60 @@ class ProfileRepoImpl extends ProfileRepository {
             if (profileImage != null &&
                 profileImage.isNotEmpty &&
                 profileImage != userMap["photoUrl"]) {
-              var result = await uploadImage(
-                  true, profileImage, userMap["photoUrl"], userId);
-              if (result.isNotEmpty) {
-                userMap["photoUrl"] = result;
+              String prev = '';
+              String url = '';
+              if (userMap['photoUrl'] == "" || userMap['photoUrl'] == null) {
+                url = userMap['photoUrl'];
+                prev = 'true';
               } else {
-                return const Left(
-                    ServerFailure(message: "Image upload failed"));
+                prev = 'false';
+                url = "url";
               }
+              var request = http.MultipartRequest('POST', uri)
+                ..files.add(
+                    await http.MultipartFile.fromPath('profile', profileImage))
+                ..fields['prev'] = prev
+                ..fields['url'] = url
+                ..fields['isProfile'] = "true"
+                ..fields['userId'] = userId;
+              var response = await request.send();
+              if (response.statusCode != 200) {
+                return const Left(
+                    ServerFailure(message: "Oops! Image upload failed"));
+              }
+              var responseData = await http.Response.fromStream(response);
+              var responseBody = jsonDecode(responseData.body);
+              userMap['photoUrl'] = responseBody['url'];
             }
             if (backgroundImage != null &&
                 backgroundImage.isNotEmpty &&
                 backgroundImage != userMap["backgroundUrl"]) {
-              var result = await uploadImage(
-                  false, backgroundImage, userMap["backgroundUrl"], userId);
-              if (result.isNotEmpty) {
-                userMap["backgroundUrl"] = result;
+              String prev = '';
+              String url = '';
+              if (userMap['backgroundUrl'] == "" ||
+                  userMap['backgroundUrl'] == null) {
+                url = userMap['backgroundUrl'];
+                prev = 'true';
               } else {
-                return const Left(
-                    ServerFailure(message: "Image upload failed"));
+                prev = 'false';
+                url = "url";
               }
+              var request = http.MultipartRequest('POST', uri)
+                ..files.add(await http.MultipartFile.fromPath(
+                    'profile', backgroundImage))
+                ..fields['prev'] = prev
+                ..fields['url'] = url
+                ..fields['isProfile'] = "false"
+                ..fields['userId'] = userId;
+
+              var response = await request.send();
+              if (response.statusCode != 200) {
+                return const Left(
+                    ServerFailure(message: "Oops! Image upload failed"));
+              }
+              var responseData = await http.Response.fromStream(response);
+              var responseBody = jsonDecode(responseData.body);
+              userMap['backgroundUrl'] = responseBody['url'];
             }
 
             userMap["name"] = fullName;
@@ -127,83 +161,6 @@ class ProfileRepoImpl extends ProfileRepository {
       }
     } else {
       return const Left(ServerFailure(message: "No internet connection"));
-    }
-  }
-
-  Future<String> uploadImage(
-      bool isProfile, String imagePath, String prevUrl, String userId) async {
-    try {
-      if (isProfile == true) {
-        var isDeleted = true;
-        if (prevUrl.isNotEmpty) {
-          isDeleted = await deleteImage(prevUrl);
-        }
-        if (isDeleted) {
-          var request = http.MultipartRequest(
-              "POST", Uri.parse('${ApiConstant.BASE_URL}/upload'));
-          // attach images
-          request.files
-              .add(await http.MultipartFile.fromPath('file', imagePath));
-          request.fields["userId"] = userId;
-          request.fields["imageType"] = "profile";
-          var response =
-              await request.send().timeout(const Duration(seconds: 10));
-          if (response.statusCode == 200) {
-            var responseData = await http.Response.fromStream(response);
-            var responseBody = jsonDecode(responseData.body);
-            return responseBody["imageURL"];
-          } else {
-            return "";
-          }
-        } else {
-          return "";
-        }
-      } else {
-        var isDeleted = true;
-        if (prevUrl.isNotEmpty) {
-          isDeleted = await deleteImage(prevUrl);
-        }
-        if (isDeleted) {
-          var request = http.MultipartRequest(
-              "POST", Uri.parse('${ApiConstant.BASE_URL}/upload'));
-          // attach images
-          request.files
-              .add(await http.MultipartFile.fromPath('file', imagePath));
-          request.fields["userId"] = userId;
-          request.fields["imageType"] = "background";
-          var response = await request.send();
-          if (response.statusCode == 200) {
-            var responseData = await http.Response.fromStream(response);
-            var responseBody = jsonDecode(responseData.body);
-            return responseBody["imageURL"];
-          } else {
-            return "";
-          }
-        } else {
-          return "";
-        }
-      }
-    } catch (e) {
-      print(e);
-      return "";
-    }
-  }
-
-  Future<bool> deleteImage(String imageUrl) async {
-    try {
-      String publicId = publicIdFromUrl(imageUrl);
-      var uri = Uri.parse('${ApiConstant.BASE_URL}/delete/$publicId');
-      var response =
-          await client.delete(uri).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      print(e);
-      return false;
     }
   }
 

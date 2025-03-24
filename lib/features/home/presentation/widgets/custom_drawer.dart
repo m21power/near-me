@@ -5,7 +5,6 @@ import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
 import 'package:near_me/features/home/presentation/bloc/Home/home_bloc.dart';
-import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post_bloc.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/about_page.dart';
 import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
@@ -51,30 +50,54 @@ Drawer customDrawer(BuildContext context) {
                 child: Container(
                   width: double.infinity,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage: user == null
-                            ? const AssetImage("assets/logo.png")
-                            : user!.gender == 'male'
-                                ? const AssetImage('assets/male.png')
-                                : const AssetImage('assets/woman.png'),
-                        foregroundImage:
-                            (user?.photoUrl != null && user?.photoUrl != '')
-                                ? CachedNetworkImageProvider(
-                                    cacheManager: MyCacheManager(),
-                                    user!.photoUrl!)
-                                : null,
+                      Container(
+                        width: 100, // Adjust size (radius * 2 + border)
+                        height: 100,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.purple,
+                              Colors.blue
+                            ], // Change to your preferred colors
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          child: CircleAvatar(
+                            radius: 40,
+                            backgroundImage: user == null
+                                ? const AssetImage("assets/logo.png")
+                                : user!.gender == 'male'
+                                    ? const AssetImage('assets/male.png')
+                                    : const AssetImage('assets/woman.png'),
+                            foregroundImage:
+                                (user?.photoUrl != null && user?.photoUrl != '')
+                                    ? CachedNetworkImageProvider(
+                                        cacheManager: MyCacheManager(),
+                                        user!.photoUrl!)
+                                    : null,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      Text(
-                        user?.name ?? "Guest User",
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16),
+                        child: Text(
+                          user?.name ?? "Guest User",
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
                       ),
                     ],
                   ),

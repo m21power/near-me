@@ -268,12 +268,30 @@ class _UserProfilePageState extends State<UserProfilePage> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: AssetImage("assets/male.png"),
-                foregroundImage: userModel!.photoUrl != null
-                    ? NetworkImage(userModel!.photoUrl!)
-                    : null,
+              Container(
+                width: 100, // Adjust size (radius * 2 + border)
+                height: 100,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.purple,
+                      Colors.blue
+                    ], // Change to your preferred colors
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage("assets/male.png"),
+                    foregroundImage: userModel!.photoUrl != null
+                        ? NetworkImage(userModel!.photoUrl!)
+                        : null,
+                  ),
+                ),
               ),
             ],
           ),

@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:near_me/core/constants/user_constant.dart';
+import 'package:near_me/core/util/cache_manager.dart';
 import 'package:near_me/features/Auth/domain/entities/user_entities.dart';
 import 'package:near_me/features/location/domain/entities/user_entity_loc.dart';
 import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
@@ -157,13 +159,33 @@ GestureDetector profileMaker(UserLocEntity userLoc, BuildContext context) {
     child: Stack(
       alignment: Alignment.center,
       children: [
-        CircleAvatar(
-          radius: 30,
-          backgroundImage: userLoc.gender == 'male'
-              ? Image.asset('assets/male.png').image
-              : Image.asset('assets/woman.png').image,
-          foregroundImage:
-              userLoc.photoUrl != '' ? NetworkImage(userLoc.photoUrl) : null,
+        Container(
+          width: 60, // Adjust size (radius * 2 + border)
+          height: 60,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                Colors.purple,
+                Colors.blue
+              ], // Change to your preferred colors
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: CircleAvatar(
+              radius: 30,
+              backgroundImage: userLoc.gender == 'male'
+                  ? Image.asset('assets/male.png').image
+                  : Image.asset('assets/woman.png').image,
+              foregroundImage: userLoc.photoUrl != ''
+                  ? CachedNetworkImageProvider(userLoc.photoUrl,
+                      cacheManager: MyCacheManager())
+                  : null,
+            ),
+          ),
         ),
         Positioned(
           bottom: 0, // Adjust position

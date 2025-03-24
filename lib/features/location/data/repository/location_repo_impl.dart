@@ -52,10 +52,21 @@ class LocationRepoImpl implements LocationRepository {
       return;
     }
 
+    try {
+      // Emit the initial location immediately
+      Position position = await Geolocator.getCurrentPosition();
+      yield Right<Failure, Position>(position);
+    } catch (e) {
+      yield Left<Failure, Position>(
+          ServerFailure(message: "Failed to get location: $e"));
+      return;
+    }
+
+    // Emit every 5 minutes
     yield* Stream.periodic(const Duration(minutes: 5)).asyncMap((_) async {
       try {
         Position position = await Geolocator.getCurrentPosition();
-        return Right<Failure, Position>(position); // Explicit type
+        return Right<Failure, Position>(position);
       } catch (e) {
         return Left<Failure, Position>(
             ServerFailure(message: "Failed to get location: $e"));
@@ -70,16 +81,16 @@ class LocationRepoImpl implements LocationRepository {
         .updateLocation(LatLng(position.latitude, position.longitude));
     // emit to the socket ,
 
-    channel.sink.add(jsonEncode({
-      'userId': userId,
-      "latitude": 9.031859697470294,
-      "longitude": 38.763446899832886
-    }));
     // channel.sink.add(jsonEncode({
     //   'userId': userId,
-    //   "latitude": position.latitude,
-    //   "longitude": position.longitude
+    //   "latitude": 9.031859697470294,
+    //   "longitude": 38.763446899832886
     // }));
+    channel.sink.add(jsonEncode({
+      'userId': userId,
+      "latitude": position.latitude,
+      "longitude": position.longitude
+    }));
     return unit;
   }
 

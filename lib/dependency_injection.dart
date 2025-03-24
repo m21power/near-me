@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart' as get_it;
 import 'package:image_picker/image_picker.dart';
+import 'package:near_me/core/constants/api_constant.dart';
 import 'package:near_me/features/Auth/data/repository/auth_repository_impl.dart';
 import 'package:near_me/features/Auth/domain/repository/auth_repository.dart';
 import 'package:near_me/features/chat/data/repository/chat_repository_impl.dart';
@@ -78,7 +79,7 @@ final sl = get_it.GetIt.instance;
 Future<void> init() async {
   //websocket
   var channel =
-      IOWebSocketChannel.connect('ws://near-me-backend-new.onrender.com/ws');
+      IOWebSocketChannel.connect('wss://${ApiConstant.SOCKET_URL}/ws');
   sl.registerLazySingleton<IOWebSocketChannel>(() => channel);
 
   //firebase app check
