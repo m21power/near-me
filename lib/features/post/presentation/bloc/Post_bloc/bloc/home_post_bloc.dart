@@ -20,7 +20,6 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
   List<PostModel> posts = [];
   HashSet<int> likedIds = HashSet<int>();
   List<PostModel> userPosts = [];
-  DateTime? lastPostTime;
   HomePostBloc(
       {required this.getPostsUsecase,
       required this.getUserPostsUsecase,
@@ -29,22 +28,20 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
       : super(HomePostInitial()) {
     on<GetPostsEvent>(
       (event, emit) async {
-        var lastTime;
         emit(GetPostLoadingState());
-        if (lastPostTime == null) {
-          lastTime = DateTime.now();
-        }
-        var result = await getPostsUsecase(lastTime);
+        var result = await getPostsUsecase();
         result.fold(
             (l) => emit(GetPostsFailureState(l.message, posts, likedIds)), (r) {
-          lastPostTime = r.last.createdAt;
-          posts.addAll(r);
+          posts = r;
           emit(GetPostsSuccessState(posts, likedIds));
         });
       },
     );
     on<GetPost>(
       (event, emit) {
+        for (var post in posts) {
+          print(post.toJson());
+        }
         emit(GetPostsSuccessState(posts, likedIds));
       },
     );
@@ -69,7 +66,7 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
           emit(LikePostsFailureState(l.message, posts, likedIds));
         }, (r) {
           add(GetLikedPostsEvent());
-          // emit(LikePostsSuccessState(posts, likedIds));
+          emit(LikePostsSuccessState(posts, likedIds));
         });
       },
     );
@@ -78,10 +75,9 @@ class HomePostBloc extends Bloc<HomePostEvent, HomePostState> {
       (event, emit) async {
         emit(GetUserPostsInitialState());
         var result = await getUserPostsUsecase(event.userId);
-        result.fold(
-            (l) =>
-                emit(GetUserPostsFailureState(l.message, userPosts, likedIds)),
-            (r) {
+        result.fold((l) {
+          emit(GetUserPostsFailureState(l.message, userPosts, likedIds));
+        }, (r) {
           userPosts = r;
           emit(GetUserPostsSuccessState(userPosts, likedIds));
         });

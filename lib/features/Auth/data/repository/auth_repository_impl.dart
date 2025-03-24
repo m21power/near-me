@@ -13,9 +13,11 @@ import 'package:near_me/core/core.dart';
 import 'package:near_me/core/error/failure.dart';
 import 'package:near_me/core/service/email_service.dart';
 import 'package:near_me/core/service/random_otp_generator.dart';
+import 'package:near_me/dependency_injection.dart';
 import 'package:near_me/features/Auth/domain/repository/auth_repository.dart';
 
 import 'package:near_me/features/Auth/domain/entities/user_entities.dart';
+import 'package:near_me/features/home/data/repository/local/listen_conn_status.dart';
 import 'package:near_me/features/home/data/repository/local/local_db.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -175,16 +177,14 @@ class AuthRepositoryImpl implements AuthRepository {
         if (!email.contains("@")) {
           return const Left(ServerFailure(message: "Invalid email"));
         }
-        var value = await firestore
-            .collection("users")
-            .where("email", isEqualTo: email)
-            .get();
-        if (value.docs.isEmpty) {
+        var value = await firebaseAuth.fetchSignInMethodsForEmail(email);
+        if (value.isEmpty) {
           return const Right(unit);
         } else {
           return const Left(ServerFailure(message: "Email already in use"));
         }
       } catch (e) {
+        print(e.toString());
         return const Left(ServerFailure(message: "Network error"));
       }
     } else {
@@ -230,6 +230,7 @@ class AuthRepositoryImpl implements AuthRepository {
           print(storedUserId);
           await UserConstant().initializeUser();
           UserConstant().setUser();
+          sl<ConnectionStatusListener>().listenToConnectionStatus();
           return Right(user);
         } else {
           return const Left(ServerFailure(message: "User not found"));
@@ -350,6 +351,7 @@ class AuthRepositoryImpl implements AuthRepository {
     if (value != null) {
       await UserConstant().initializeUser();
       UserConstant().setUser();
+      sl<ConnectionStatusListener>().listenToConnectionStatus();
 
       return const Right(unit);
     }

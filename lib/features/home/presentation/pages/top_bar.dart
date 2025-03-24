@@ -91,7 +91,8 @@ class _TopBarState extends State<TopBar> {
               }
             }
             if (showConnDialog || myConLoadStae) {
-              var value = await myConnectionsDialog(isSearching, myConnection);
+              var value =
+                  await myConnectionsDialog(myConLoadStae, myConnection);
               if (value == null || value == false) {
                 myConLoadStae = false;
                 showConnDialog = false;
@@ -225,8 +226,10 @@ class _TopBarState extends State<TopBar> {
                         icon: BlocBuilder<ChatBloc, ChatState>(
                           builder: (context, state) {
                             if (state is GetChatEntitiesState) {
-                              totalUnreadChatCount =
-                                  state.chatEntites.last.totalUnreadCount;
+                              if (state.chatEntites.isNotEmpty) {
+                                totalUnreadChatCount =
+                                    state.chatEntites.last.totalUnreadCount;
+                              }
                             }
                             return Stack(
                               children: [
@@ -360,11 +363,12 @@ class _TopBarState extends State<TopBar> {
     return ListTile(
       onTap: () {
         var userid = user.id;
-        context.read<ProfileBloc>().add(GetUserByIdEvent(userid));
+
         if (userid == UserConstant().getUserId()) {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => MyProfilePage()));
         } else {
+          context.read<ProfileBloc>().add(GetUserByIdEvent(userid));
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => UserProfilePage()));
         }

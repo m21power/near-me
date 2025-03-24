@@ -10,6 +10,7 @@ import 'package:near_me/features/location/presentation/bloc/location_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/my_profile_page.dart';
 
 import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
+import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../profile/presentation/pages/user_profile_page.dart';
 
 class MapPage extends StatefulWidget {
@@ -145,24 +146,11 @@ GestureDetector profileMaker(UserLocEntity userLoc, BuildContext context) {
   return GestureDetector(
     onTap: () {
       userLoc.userId != UserConstant().getUserId()
-          ? Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => UserProfilePage(
-                      // user: UserModel(
-                      //     id: userLoc.userId,
-                      //     email: userLoc.email,
-                      //     university: userLoc.university,
-                      //     major: userLoc.major,
-                      //     name: userLoc.name,
-                      //     photoUrl: userLoc.photoUrl,
-                      //     backgroundUrl: userLoc.backgroundUrl,
-                      //     isEmailVerified: userLoc.isEmailVerified,
-                      //     password: userLoc.password,
-                      //     bio: userLoc.bio,
-                      //     fcmToken: userLoc.fcmToken,
-                      //     gender: userLoc.gender),
-                      )))
+          ? {
+              context.read<ProfileBloc>().add(GetUserByIdEvent(userLoc.userId)),
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => UserProfilePage()))
+            }
           : Navigator.push(context,
               MaterialPageRoute(builder: (context) => MyProfilePage()));
     },

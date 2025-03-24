@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:near_me/core/constants/user_status.dart';
 import 'dart:math';
 
 import 'package:near_me/features/home/presentation/bloc/Internet/bloc/internet_bloc.dart';
@@ -21,7 +22,6 @@ class _PostPageState extends State<PostPage> {
   HashSet<int> likedPostIds = HashSet<int>();
   bool isLoading = false;
   Future<void> _onRefresh() async {
-    print("heeeeeeeeeeeeeeeeeeeeeeeere");
     context.read<HomePostBloc>().add(GetPostsEvent());
     context.read<HomePostBloc>().add(GetLikedPostsEvent());
   }
@@ -90,6 +90,7 @@ class _PostPageState extends State<PostPage> {
                 BlocBuilder<InternetBloc, InternetState>(
                   builder: (context, intState) {
                     if (intState is NoInternetConnectionState) {
+                      prevInternetConnection = false;
                       return const Align(
                         alignment: Alignment.bottomCenter,
                         child: Padding(
@@ -104,8 +105,13 @@ class _PostPageState extends State<PostPage> {
                           ),
                         ),
                       );
+                    } else {
+                      if (prevInternetConnection == false) {
+                        _onRefresh();
+                      }
+                      prevInternetConnection = true;
+                      return SizedBox();
                     }
-                    return SizedBox();
                   },
                 )
               ],

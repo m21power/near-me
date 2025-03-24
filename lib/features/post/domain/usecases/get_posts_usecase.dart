@@ -6,7 +6,7 @@ import 'package:near_me/features/post/domain/repository/post_repository.dart';
 class GetPostsUsecase {
   final PostRepository postRepository;
   GetPostsUsecase({required this.postRepository});
-  Future<Either<Failure, List<PostModel>>> call(DateTime lastPostTime) {
-    return postRepository.getPosts(lastPostTime);
+  Future<Either<Failure, List<PostModel>>> call() {
+    return postRepository.getPosts();
   }
 }

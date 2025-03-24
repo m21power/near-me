@@ -40,7 +40,8 @@ class PostRepoImpl implements PostRepository {
             message: "Failed to create post, please try again later"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: "unable to get post"));
+      return const Left(ServerFailure(
+          message: "Failed to create post, please try again later"));
     }
   }
 
@@ -53,6 +54,9 @@ class PostRepoImpl implements PostRepository {
       var response = await client.get(uri);
       if (response.statusCode == 200) {
         List<PostModel> result = [];
+        if (response.body.trim().isEmpty || response.body.trim() == 'null') {
+          return Right(result);
+        }
         var jsonData = jsonDecode(response.body);
         for (var data in jsonData) {
           result.add(PostModel.fromMap(data));
@@ -62,20 +66,22 @@ class PostRepoImpl implements PostRepository {
         return const Left(ServerFailure(message: "unable to access the post"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: "unable to get post"));
+      return Left(ServerFailure(message: "Unable to get post"));
     }
   }
 
   @override
-  Future<Either<Failure, List<PostModel>>> getPosts(
-      DateTime lastPostTime) async {
+  Future<Either<Failure, List<PostModel>>> getPosts() async {
     try {
       var uri = Uri.parse('${ApiConstant.POST_BASE_URL}/post/get-posts');
-      var response = await client.post(uri,
-          body: jsonEncode({'lastPostTime': lastPostTime.toIso8601String()}),
-          headers: {'Content-Type': 'application/json'});
+      var response =
+          await client.post(uri, headers: {'Content-Type': 'application/json'});
       if (response.statusCode == 200) {
         List<PostModel> result = [];
+        if (response.body.trim().isEmpty || response.body.trim() == 'null') {
+          return Right(result);
+        }
+
         var jsonData = jsonDecode(response.body);
         for (var data in jsonData) {
           result.add(PostModel.fromMap(data));
@@ -85,7 +91,7 @@ class PostRepoImpl implements PostRepository {
         return const Left(ServerFailure(message: "unable to access the post"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: "unable to get post"));
+      return Left(ServerFailure(message: "Unable to get post"));
     }
   }
 
@@ -97,6 +103,9 @@ class PostRepoImpl implements PostRepository {
       var response = await client.get(uri);
       if (response.statusCode == 200) {
         List<PostModel> result = [];
+        if (response.body.trim().isEmpty || response.body.trim() == 'null') {
+          return Right(result);
+        }
         var jsonData = jsonDecode(response.body);
         for (var data in jsonData) {
           result.add(PostModel.fromMap(data));
@@ -118,6 +127,10 @@ class PostRepoImpl implements PostRepository {
           .replace(queryParameters: {"userId": userId});
       var response = await client.get(uri);
       if (response.statusCode == 200) {
+        if (response.body.trim().isEmpty || response.body.trim() == 'null') {
+          return Right(HashSet<int>());
+        }
+
         var listOfIds = jsonDecode(response.body);
         var hashSetOfIds = HashSet<int>.from(listOfIds);
         return Right(hashSetOfIds);

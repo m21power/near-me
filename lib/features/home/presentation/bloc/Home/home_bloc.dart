@@ -26,6 +26,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
     on<GetMyConnectionsEvent>(
       (event, emit) async {
+        emit(GetMyConnectionsLoadingState());
         var result = await getMyConnectionUsecase();
         result.fold(
             (l) => emit(GetMyConnectionsFailureState(message: l.message)),

@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +16,12 @@ import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/features/post/presentation/widgets/posts.dart';
 import 'package:near_me/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:near_me/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:near_me/features/profile/presentation/widgets/background_pic_alert_dialog.dart';
+import 'package:near_me/features/profile/presentation/widgets/show_loading_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../home/presentation/bloc/Internet/bloc/internet_bloc.dart';
+import '../widgets/profile_pic_alert_dialog.dart';
 
 class MyProfilePage extends StatefulWidget {
   const MyProfilePage({super.key});
@@ -33,6 +37,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
   List<PostModel> userPosts = [];
   HashSet<int> likedPostIds = HashSet<int>();
   bool isLoading = true;
+  bool showLoading = false;
 
   @override
   void initState() {
@@ -42,18 +47,26 @@ class _MyProfilePageState extends State<MyProfilePage> {
     super.initState();
   }
 
+  Future<void> _onRefresh() async {
+    context
+        .read<HomePostBloc>()
+        .add(GetUserPostEvent(UserConstant().getUserId()!));
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(),
         body: RefreshIndicator(
-          onRefresh: () async {
-            setState(() {});
-            return;
-          },
+          onRefresh: _onRefresh,
           child: BlocConsumer<ProfileBloc, ProfileState>(
             listener: (context, state) {
+              if (state is UpdatingState) {
+                showLoading = true;
+              } else {
+                showLoading = false;
+              }
               if (state is UpdateProfileSuccessState) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -69,14 +82,17 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   ),
                 );
               }
+              if (showLoading) {
+                showLoadingDialog(context);
+              } else {
+                hideLoadingDialog(context);
+              }
             },
             builder: (context, state) {
               var user =
                   sl<SharedPreferences>().getString(Constant.userPreferenceKey);
               var userModel = jsonDecode(user!);
-              if (state is UpdatingState) {
-                return const Center(child: CircularProgressIndicator());
-              }
+
               return Column(
                 children: [
                   // Top Section (Background + Profile Image)
@@ -89,13 +105,16 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       child: Column(
                         children: [
                           // User Info
-                          Text(
-                              (userModel['name'] == '' ||
-                                      userModel['name'] == null)
-                                  ? "anonymous"
-                                  : userModel['name'],
-                              style: const TextStyle(
-                                  fontSize: 22, fontWeight: FontWeight.bold)),
+                          ElevatedButton(
+                            onPressed: () {},
+                            child: Text(
+                                (userModel['name'] == '' ||
+                                        userModel['name'] == null)
+                                    ? "anonymous"
+                                    : userModel['name'],
+                                style: const TextStyle(
+                                    fontSize: 22, fontWeight: FontWeight.bold)),
+                          ),
                           const SizedBox(height: 5),
                           Text(
                               (userModel['university'] == '' ||
@@ -160,6 +179,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   BlocConsumer<PostBloc, PostState>(
                     listener: (context, postState) {
                       if (postState is CreatePostSuccessState) {
+                        context
+                            .read<HomePostBloc>()
+                            .add(GetUserPostEvent(UserConstant().getUserId()!));
+                        context.read<HomePostBloc>().add(GetPostsEvent());
                         showSuccess("Post created successfully");
                       }
                       if (postState is CreatePostFailureState) {
@@ -236,51 +259,126 @@ class _MyProfilePageState extends State<MyProfilePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("My Posts",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              IconButton(
-                onPressed: () async {
-                  var result = await sl<ImagePath>().getImagePath();
-                  result.fold((l) {
-                    print("error occurred picking image");
-                  }, (r) {
-                    context.read<PostBloc>().add(CreatePostEvent(r));
-                  });
-                },
-                icon: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary, // Set your button color
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        offset: Offset(0, 2),
-                        blurRadius: 4,
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("My Posts",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            IconButton(
+              onPressed: () async {
+                var result = await sl<ImagePath>().getImagePath();
+                result.fold((l) {
+                  print("Error occurred picking image");
+                }, (r) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ],
-                  ),
-                  child: const Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(
-                        Icons.emoji_emotions_outlined,
-                        size: 30,
-                        color: Colors.white, // Icon color
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "Confirm Post",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                File(r),
+                                width: 250,
+                                height: 250,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            const Text(
+                              "Are you sure you want to post this image?",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey[300],
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 12),
+                                  ),
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("Cancel",
+                                      style: TextStyle(color: Colors.black)),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 12),
+                                  ),
+                                  onPressed: () {
+                                    context
+                                        .read<PostBloc>()
+                                        .add(CreatePostEvent(r));
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text("Post",
+                                      style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  );
+                });
+              },
+              icon: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).colorScheme.primary,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: const Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      Icons.emoji_emotions_outlined,
+                      size: 30,
+                      color: Colors.white,
+                    ),
+                  ],
                 ),
               ),
-            ],
-          )),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -333,8 +431,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
           height: 200,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: userModel["backgroundUrl"] != null &&
-                      userModel["backgroundUrl"] != ""
+              image: (userModel["backgroundUrl"] != null &&
+                      userModel["backgroundUrl"] != "")
                   ? CachedNetworkImageProvider(userModel["backgroundUrl"],
                       cacheManager: MyCacheManager())
                   : const AssetImage("assets/background-image.png")
@@ -356,9 +454,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
               result.fold((l) {
                 print("failded to fetch iamge");
               }, (r) {
-                setState(() {
-                  newBackgroundImage = r;
-                  isImageChanged = true;
+                showBackgroundImageDialog(context, r, () {
+                  setState(() {
+                    newBackgroundImage = r;
+                    isImageChanged = true;
+                  });
                 });
               });
             }, // Pick background image
@@ -408,9 +508,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       result.fold((l) {
                         print("failded to fetch iamge");
                       }, (r) {
-                        setState(() {
-                          newProfileImage = r;
-                          isImageChanged = true;
+                        showProfileImageDialog(context, r, () {
+                          setState(() {
+                            newProfileImage = r;
+                            isImageChanged = true;
+                          });
                         });
                       });
                     }, // Pick profile image

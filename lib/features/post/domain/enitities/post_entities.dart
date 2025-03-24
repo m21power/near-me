@@ -42,7 +42,10 @@ class PostModel {
       name: map['name'] ?? '',
       gender: map['gender'] ?? '',
       profilePic: map['profilePic'],
-      createdAt: DateTime.parse(map['createdAt'] ?? DateTime.now()),
+      createdAt: DateTime.parse(
+          (map['createdAt'] == null || map['createdAt'] == '')
+              ? DateTime.now()
+              : map['createdAt']),
     );
   }
 

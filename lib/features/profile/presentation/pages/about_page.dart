@@ -17,9 +17,12 @@ class AboutPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Welcome to Near Me',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            const Center(
+              child: Text(
+                'Welcome to Near Me',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: 10),
             const Text(

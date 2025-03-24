@@ -114,6 +114,7 @@ class ProfileRepoImpl extends ProfileRepository {
             var updatedUser = UserModel.fromMap(userMap);
             await sharedPreferences.setString(
                 Constant.userPreferenceKey, updatedUser.toJson());
+            UserConstant().setUser();
             return Right(updatedUser);
           } else {
             return const Left(ServerFailure(message: "User not found"));

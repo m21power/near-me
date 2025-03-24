@@ -66,7 +66,6 @@ class _PostCardState extends State<PostCard> {
                     final post = widget.posts[index];
                     final bool isLiked =
                         widget.likedPostIds.contains(post.postId);
-
                     return Card(
                       margin: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 5),
@@ -78,9 +77,6 @@ class _PostCardState extends State<PostCard> {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              context
-                                  .read<ProfileBloc>()
-                                  .add(GetUserByIdEvent(post.userId));
                               if (post.userId == UserConstant().getUserId()) {
                                 Navigator.push(
                                     context,
@@ -88,6 +84,9 @@ class _PostCardState extends State<PostCard> {
                                         builder: (context) =>
                                             const MyProfilePage()));
                               } else {
+                                context
+                                    .read<ProfileBloc>()
+                                    .add(GetUserByIdEvent(post.userId));
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -110,8 +109,8 @@ class _PostCardState extends State<PostCard> {
                               title: Text(post.name,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
-                              subtitle: Text(
-                                  DateFormat('hh:mm a').format(post.createdAt)),
+                              subtitle: Text(DateFormat('hh:mm a')
+                                  .format(post.createdAt ?? DateTime.now())),
                             ),
                           ),
                           ClipRRect(
