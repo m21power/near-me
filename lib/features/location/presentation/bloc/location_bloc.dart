@@ -54,6 +54,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
     );
     on<GetNearbyUsersEvent>(
       (event, emit) async {
+        emit(NearbyUserFetchingState("fetching nearby users"));
         await getNearbyUsersUsecase().then((value) {
           emit(value.fold(
             (l) => GetNearbyUsersFailureState(l.message),

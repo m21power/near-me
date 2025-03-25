@@ -82,16 +82,24 @@ class _ChatPageState extends State<ChatPage> {
                   BlocBuilder<InternetBloc, InternetState>(
                     builder: (context, intState) {
                       if (intState is NoInternetConnectionState) {
-                        return const Align(
+                        return Align(
                           alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircularProgressIndicator(),
+                              children: const [
+                                CircularProgressIndicator(color: Colors.white),
                                 SizedBox(width: 10),
-                                Text('Connecting...'),
+                                Text(
+                                  'No Internet Connection',
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ],
                             ),
                           ),

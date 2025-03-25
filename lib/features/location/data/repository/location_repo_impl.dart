@@ -150,7 +150,8 @@ class LocationRepoImpl implements LocationRepository {
               ServerFailure(message: "Failed to get nearby users."));
         }
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return const Left(
+            ServerFailure(message: "Failed to get nearby users."));
       }
     } else {
       return const Left(ServerFailure(message: "No internet connection"));

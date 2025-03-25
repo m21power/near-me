@@ -22,6 +22,8 @@ import 'package:near_me/features/home/data/repository/local/local_db.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../app_lifecycle.dart';
+
 class AuthRepositoryImpl implements AuthRepository {
   final FirebaseFirestore firestore;
   final FirebaseAuth firebaseAuth;
@@ -230,6 +232,7 @@ class AuthRepositoryImpl implements AuthRepository {
           print(storedUserId);
           await UserConstant().initializeUser();
           UserConstant().setUser();
+          AppLifecycleObserver.setUserId(UserConstant().getUserId());
           sl<ConnectionStatusListener>().listenToConnectionStatus();
           return Right(user);
         } else {
@@ -350,7 +353,9 @@ class AuthRepositoryImpl implements AuthRepository {
     var value = await secureStorage.read(key: Constant.userIdSecureStorageKey);
     if (value != null) {
       await UserConstant().initializeUser();
+
       UserConstant().setUser();
+      AppLifecycleObserver.setUserId(UserConstant().getUserId());
       sl<ConnectionStatusListener>().listenToConnectionStatus();
 
       return const Right(unit);

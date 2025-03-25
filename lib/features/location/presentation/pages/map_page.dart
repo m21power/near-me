@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,6 +30,30 @@ class _MapPageState extends State<MapPage> {
       LatLng(9.031859697470294, 38.763446899832886);
   bool isLoading = false;
   List<UserLocEntity> userLoc = [];
+  int _dotsCount = 1;
+  late Timer _timer;
+  bool isFetching = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  // Start the dots cycle
+  void _startDotCycle() {
+    _timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+      setState(() {
+        // Cycle through 1 dot, 2 dots, 3 dots, then back to 1 dot
+        _dotsCount = (_dotsCount % 3) + 1;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +61,28 @@ class _MapPageState extends State<MapPage> {
 
     return BlocConsumer<LocationBloc, LocationState>(
       listener: (context, state) {
+        print("state: $state");
         if (state is GetNearbyUsersSuccessState) {
           setState(() {
             userLoc = state.nearbyUsers;
+            _timer?.cancel();
+            isFetching = false;
+          });
+        }
+        if (state is GetNearbyUsersFailureState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+          _timer?.cancel();
+          isFetching = false;
+        }
+        if (state is NearbyUserFetchingState) {
+          setState(() {
+            _startDotCycle();
+            isFetching = true;
           });
         }
         if (UserConstant().getLocation() != myLocation &&
@@ -57,78 +102,170 @@ class _MapPageState extends State<MapPage> {
             child: CircularProgressIndicator(),
           );
         }
-        return Column(
+
+        return Stack(
           children: [
-            Expanded(
-              child: FlutterMap(
-                mapController: mapController, // Attach controller here
-                options: MapOptions(
-                  initialZoom: 15,
-                  initialCenter: myLocation,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.drag |
-                        InteractiveFlag.flingAnimation |
-                        InteractiveFlag.pinchMove |
-                        InteractiveFlag.pinchZoom |
-                        InteractiveFlag.doubleTapZoom,
+            // Map takes the full screen
+            FlutterMap(
+              mapController: mapController,
+              options: MapOptions(
+                initialZoom: 15,
+                initialCenter: myLocation,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.drag |
+                      InteractiveFlag.flingAnimation |
+                      InteractiveFlag.pinchMove |
+                      InteractiveFlag.pinchZoom |
+                      InteractiveFlag.doubleTapZoom,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  tileProvider: FMTCTileProvider(
+                    stores: const {
+                      'mapStore': BrowseStoreStrategy.readUpdateCreate
+                    },
+                  ),
+                  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  subdomains: const ['a', 'b', 'c'],
+                ),
+                MarkerLayer(markers: [
+                  buildMarker(
+                    UserLocEntity(
+                        userId: UserConstant().getUserId()!,
+                        name: 'Me',
+                        email: user.email,
+                        photoUrl: user.photoUrl ?? '',
+                        latitude: myLocation.latitude,
+                        longitude: myLocation.longitude,
+                        university: user.university,
+                        major: user.major,
+                        backgroundUrl: user.backgroundUrl ?? '',
+                        isEmailVerified: true,
+                        password: '',
+                        bio: user.bio ?? '',
+                        gender: user.gender,
+                        fcmToken: user.fcmToken),
+                    context,
+                  ),
+                  ...userLoc.map((user) => buildMarker(user, context)),
+                ])
+              ],
+            ),
+
+            // Positioned Refresh Button
+            // Positioned(
+            //   top: 160,
+            //   right: 10,
+            //   child: TextButton(
+            //     onPressed: () {
+            //       // Add refresh logic here
+            //     },
+            //     child: Text("Refresh"),
+            //     style: TextButton.styleFrom(
+            //       backgroundColor: Colors.white.withOpacity(0.8),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            Positioned(
+                top: 160,
+                left: 0,
+                right: 0,
+                child: isFetching
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          "Fetching nearby users " +
+                              "." *
+                                  _dotsCount, // Show 1, 2, or 3 dots based on `_dotsCount`
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : SizedBox()),
+            Positioned(
+              top: 160,
+              right: 10,
+              child: GestureDetector(
+                onTap: () {
+                  context.read<LocationBloc>().add(GetNearbyUsersEvent());
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.blue, Colors.purple], // Gradient colors
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    "Refresh",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                children: [
-                  TileLayer(
-                    tileProvider: FMTCTileProvider(
-                      stores: const {
-                        'mapStore': BrowseStoreStrategy.readUpdateCreate
-                      },
-                    ),
-                    urlTemplate:
-                        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    subdomains: const ['a', 'b', 'c'],
-                  ),
-                  MarkerLayer(markers: [
-                    buildMarker(
-                      UserLocEntity(
-                          userId: UserConstant().getUserId()!,
-                          name: 'Me',
-                          email: user.email,
-                          photoUrl: user.photoUrl ?? '',
-                          latitude: myLocation.latitude,
-                          longitude: myLocation.longitude,
-                          university: user.university,
-                          major: user.major,
-                          backgroundUrl: user.backgroundUrl ?? '',
-                          isEmailVerified: true,
-                          password: '',
-                          bio: user.bio ?? '',
-                          gender: user.gender,
-                          fcmToken: user.fcmToken),
-                      context,
-                    ),
-                    ...userLoc.map((user) => buildMarker(user, context)),
-                  ])
-                ],
               ),
             ),
-            BlocBuilder<InternetBloc, InternetState>(
-              builder: (context, intState) {
-                if (intState is NoInternetConnectionState) {
-                  return const Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(width: 10),
-                          Text('Connecting...'),
-                        ],
+
+            // Positioned No Internet Connection Banner
+            Positioned(
+              bottom: 16,
+              left: 0,
+              right: 0,
+              child: BlocBuilder<InternetBloc, InternetState>(
+                builder: (context, intState) {
+                  if (intState is NoInternetConnectionState) {
+                    return Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            CircularProgressIndicator(color: Colors.white),
+                            SizedBox(width: 10),
+                            Text(
+                              'No Internet Connection',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }
-                return SizedBox();
-              },
-            )
+                    );
+                  }
+                  return SizedBox(); // Empty space if no internet issue
+                },
+              ),
+            ),
           ],
         );
       },

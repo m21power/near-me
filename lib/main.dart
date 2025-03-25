@@ -21,8 +21,6 @@ import 'package:near_me/features/post/presentation/bloc/Post_bloc/bloc/home_post
 import 'package:near_me/features/post/presentation/bloc/post_bloc.dart';
 import 'package:near_me/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 
 import 'core/core.dart';
 import 'core/routes/route.dart';
@@ -41,16 +39,6 @@ void main() async {
   await FMTCStore('mapStore').manage.create();
   await sl<FirebaseAppCheck>()
       .activate(androidProvider: AndroidProvider.playIntegrity);
-
-  // await FirebaseFirestore.instance.terminate();
-  // await FirebaseFirestore.instance.clearPersistence();
-  // print("waiting ----------------------------------------");
-  // var databasesPath = await getDatabasesPath();
-  // String dbPath =
-  //     join(databasesPath, 'connections.db'); // Replace with your actual DB name
-  // print("Database Path: $dbPath");
-  // var temp = await sl<DatabaseHelper>().getAllConnections();
-  // if (temp.isNotEmpty) print(temp[0].toJson());
   sl<ConnectionStatusListener>().listenToConnectionStatus();
 
   runApp(AppLifecycleObserver(child: const MainApp()));

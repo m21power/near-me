@@ -63,10 +63,13 @@ class PostRepoImpl implements PostRepository {
         }
         return Right(result);
       } else {
-        return const Left(ServerFailure(message: "unable to access the post"));
+        return const Left(ServerFailure(
+            message:
+                "Oops! Failed retrieve your post, please try again later"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: "Unable to get post"));
+      return const Left(ServerFailure(
+          message: "Oops! Failed retrieve your post, please try again later"));
     }
   }
 
@@ -88,10 +91,12 @@ class PostRepoImpl implements PostRepository {
         }
         return Right(result);
       } else {
-        return const Left(ServerFailure(message: "unable to access the post"));
+        return const Left(ServerFailure(
+            message: "Oops! Failed retrieve post, please try again later"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: "Unable to get post"));
+      return const Left(ServerFailure(
+          message: "Oops! Failed retrieve post, please try again later"));
     }
   }
 
@@ -112,10 +117,14 @@ class PostRepoImpl implements PostRepository {
         }
         return Right(result);
       } else {
-        return const Left(ServerFailure(message: "unable to access the post"));
+        return const Left(ServerFailure(
+            message:
+                "Oops! Failed retrieve user's post, please try again later"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: "unable to get post"));
+      return const Left(ServerFailure(
+          message:
+              "Oops! Failed retrieve user's post, please try again later"));
     }
   }
 
@@ -135,10 +144,12 @@ class PostRepoImpl implements PostRepository {
         var hashSetOfIds = HashSet<int>.from(listOfIds);
         return Right(hashSetOfIds);
       } else {
-        return Left(ServerFailure(message: "unable to get post i liked"));
+        return const Left(ServerFailure(
+            message: "Unexpected error occurs,please try again later"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: "unable to get post"));
+      return const Left(ServerFailure(
+          message: "Unexpected error occurs,please try again later"));
     }
   }
 
@@ -152,10 +163,13 @@ class PostRepoImpl implements PostRepository {
       if (response.statusCode == 200 || response.statusCode == 202) {
         return Right(postId);
       } else {
-        return const Left(ServerFailure(message: "error occurred"));
+        return const Left(
+            ServerFailure(message: "Oops! Unexpected error occurs"));
       }
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      print(e.toString());
+      return const Left(
+          ServerFailure(message: "Oops! Unexpected error occurs"));
     }
   }
 }

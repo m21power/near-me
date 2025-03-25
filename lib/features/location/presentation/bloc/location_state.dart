@@ -43,3 +43,10 @@ final class GetNearbyUsersFailureState extends LocationState {
   @override
   List<Object> get props => [message];
 }
+
+final class NearbyUserFetchingState extends LocationState {
+  final String message;
+  NearbyUserFetchingState(this.message);
+  @override
+  List<Object> get props => [message];
+}
