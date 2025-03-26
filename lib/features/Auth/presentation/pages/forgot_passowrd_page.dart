@@ -66,6 +66,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               const SizedBox(height: 24),
               BlocConsumer<AuthBloc, AuthState>(
                 listener: (context, state) {
+                  print("auth state: $state");
                   if (state is AuthLoading) {
                     setState(() {
                       isLoading = true;

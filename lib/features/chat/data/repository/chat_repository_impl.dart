@@ -4,13 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:near_me/core/constants/constant.dart';
 import 'package:near_me/core/constants/user_constant.dart';
 import 'package:near_me/core/core.dart';
 import 'package:near_me/core/error/failure.dart';
 import 'package:near_me/features/chat/domain/entities/chat_entities.dart';
 import 'package:near_me/features/chat/domain/repository/chat_repository.dart';
-import 'package:near_me/features/home/presentation/widgets/custom_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
@@ -87,7 +85,10 @@ class ChatRepositoryImpl implements ChatRepository {
         .onValue
         .map((event) {
       final chatsMap = event.snapshot.value as Map<dynamic, dynamic>?;
-      if (chatsMap == null) return [];
+      if (chatsMap == null || chatsMap.isEmpty) {
+        // If no chats are found, return an empty list immediately
+        return [];
+      }
 
       List<ChatEntities> chats = [];
       for (var entry in chatsMap.entries) {
@@ -118,23 +119,78 @@ class ChatRepositoryImpl implements ChatRepository {
               Timestamp.fromMillisecondsSinceEpoch(chatData['lastMessageTime']),
           user1Id: user1.id,
           user2Id: user2Id!,
-          user2Name:
-              user2['name'] ?? '', // Using user2 details from the chat metadata
-          user2ProfilePic: user2['profilePic'] ??
-              '', // Using user2 details from the chat metadata
-          unreadCount: unreadCount, // Unread count for user1
-          user2Gender: user2['gender'] ??
-              '', // Using user2 details from the chat metadata
+          user2Name: user2['name'] ?? '',
+          user2ProfilePic: user2['profilePic'] ?? '',
+          unreadCount: unreadCount,
+          user2Gender: user2['gender'] ?? '',
           user1Gender: user1.gender,
           user1Name: user1.name,
-          totalUnreadCount:
-              unreadCount, // Assuming total unread count is for user1
+          totalUnreadCount: unreadCount,
           user1ProfilePic: user1.photoUrl ?? '',
         ));
       }
       return chats;
     });
   }
+
+  // @override
+  // Stream<List<ChatEntities>> getChats() {
+  //   var user1 = UserConstant().getUser();
+  //   return realTimeDB
+  //       .ref("chats")
+  //       .orderByChild("participants/${user1!.id}")
+  //       .equalTo(true)
+  //       .onValue
+  //       .map((event) {
+  //     final chatsMap = event.snapshot.value as Map<dynamic, dynamic>?;
+  //     if (chatsMap == null) return [];
+
+  //     List<ChatEntities> chats = [];
+  //     for (var entry in chatsMap.entries) {
+  //       final chatData = entry.value;
+  //       // Get the participant ids (user1 and user2)
+  //       var ids = [
+  //         chatData['participants'].keys.first,
+  //         chatData['participants'].keys.last
+  //       ];
+
+  //       // Identify user2 (the other participant)
+  //       String? user2Id;
+  //       for (var id in ids) {
+  //         if (id != user1.id) {
+  //           user2Id = id;
+  //         }
+  //       }
+  //       // Use the saved user2 details from chat metadata
+  //       var user2 = chatData[user2Id];
+
+  //       // Fetch unread count for this chat
+  //       var unreadCount = chatData['unreadCount']?[user1.id] ?? 0;
+
+  //       chats.add(ChatEntities(
+  //         chatId: entry.key,
+  //         lastMessage: chatData['lastMessage'] ?? '',
+  //         lastMessageTime:
+  //             Timestamp.fromMillisecondsSinceEpoch(chatData['lastMessageTime']),
+  //         user1Id: user1.id,
+  //         user2Id: user2Id!,
+  //         user2Name:
+  //             user2['name'] ?? '', // Using user2 details from the chat metadata
+  //         user2ProfilePic: user2['profilePic'] ??
+  //             '', // Using user2 details from the chat metadata
+  //         unreadCount: unreadCount, // Unread count for user1
+  //         user2Gender: user2['gender'] ??
+  //             '', // Using user2 details from the chat metadata
+  //         user1Gender: user1.gender,
+  //         user1Name: user1.name,
+  //         totalUnreadCount:
+  //             unreadCount, // Assuming total unread count is for user1
+  //         user1ProfilePic: user1.photoUrl ?? '',
+  //       ));
+  //     }
+  //     return chats;
+  //   });
+  // }
 
   @override
   Stream<List<BubbleModel>> getMessage(String receiverId) {

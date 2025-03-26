@@ -31,7 +31,7 @@ class _MapPageState extends State<MapPage> {
   bool isLoading = false;
   List<UserLocEntity> userLoc = [];
   int _dotsCount = 1;
-  late Timer _timer;
+  Timer? _timer;
   bool isFetching = false;
 
   @override
@@ -41,7 +41,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 

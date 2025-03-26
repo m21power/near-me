@@ -109,8 +109,8 @@ class _PostCardState extends State<PostCard> {
                               title: Text(post.name,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
-                              subtitle: Text(DateFormat('hh:mm a')
-                                  .format(post.createdAt ?? DateTime.now())),
+                              subtitle: Text(
+                                  DateFormat.yMMMd().format(post.createdAt)),
                             ),
                           ),
                           ClipRRect(

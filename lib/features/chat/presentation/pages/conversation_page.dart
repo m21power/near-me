@@ -295,3 +295,37 @@ class _ConversationPageState extends State<ConversationPage> {
     );
   }
 }
+
+// Widget _buildMessageInput() {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+//       child: Row(
+//         children: [
+//           Expanded(
+//             child: TextField(
+//               controller: _messageController,
+//               decoration: InputDecoration(
+//                 hintText: "Type a message...",
+//                 filled: true,
+//                 fillColor: Colors.grey[200],
+//                 border: OutlineInputBorder(
+//                   borderRadius: BorderRadius.circular(25),
+//                   borderSide: BorderSide.none,
+//                 ),
+//                 contentPadding:
+//                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//               ),
+//             ),
+//           ),
+//           const SizedBox(width: 8),
+//           CircleAvatar(
+//             backgroundColor: Colors.blue,
+//             child: IconButton(
+//               icon: const Icon(Icons.send, color: Colors.white),
+//               onPressed: _sendMessage,
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }

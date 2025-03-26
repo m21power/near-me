@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:near_me/features/Auth/presentation/bloc/auth_bloc.dart';
+import 'package:near_me/features/Auth/presentation/pages/forgot_passowrd_page.dart';
 
 import '../../../../core/constants/route_constant.dart';
 
@@ -54,7 +55,15 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        context.goNamed(RouteConstant.forgotPasswordPageRoute);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Coming soon..."),
+                          ),
+                        );
+                        // Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //         builder: (context) => ForgotPasswordPage()));
                       },
                       child: Text(
                         "Forget password?",

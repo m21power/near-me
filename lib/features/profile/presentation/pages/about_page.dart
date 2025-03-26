@@ -12,7 +12,7 @@ class AboutPage extends StatelessWidget {
         title: const Text('About'),
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,27 +29,42 @@ class AboutPage extends StatelessWidget {
               "Near Me is a social networking app designed to bring campus students closer in real-time! Whether you want to chat, share memes, or see who's nearby, Near Me makes it seamless with a smooth and modern UI.",
               style: TextStyle(fontSize: 16),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                LottieBuilder.asset(
-                    width: 200,
-                    repeat: true,
-                    isDarkMode
-                        ? "assets/boy-darkmode.mp4.lottie.json"
-                        : "assets/Boy going to school.mp4.lottie.json"),
-                const SizedBox(
-                  width: 20,
-                ),
-                LottieBuilder.asset(
-                  isDarkMode
-                      ? "assets/girl-darkmode.mp4.lottie.json"
-                      : "assets/School Girl Running.mp4.lottie.json",
-                  width: 200,
-                )
-              ],
-            ),
             const SizedBox(height: 20),
+
+            // Animations wrapped in a responsive layout
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 20,
+                  runSpacing: 10,
+                  children: [
+                    SizedBox(
+                      width: constraints.maxWidth * 0.45,
+                      child: Lottie.asset(
+                        isDarkMode
+                            ? "assets/boy-darkmode.mp4.lottie.json"
+                            : "assets/Boy going to school.mp4.lottie.json",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    SizedBox(
+                      width: constraints.maxWidth * 0.45,
+                      child: Lottie.asset(
+                        isDarkMode
+                            ? "assets/girl-darkmode.mp4.lottie.json"
+                            : "assets/School Girl Running.mp4.lottie.json",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            // Features list
             _buildFeature('🌍 Real-time Nearby Users',
                 'Instantly see students around you using the app.'),
             _buildFeature('💬 Chat in Real-time',
@@ -60,36 +75,39 @@ class AboutPage extends StatelessWidget {
             _buildFeature('🔐 Secure & Fast',
                 'Ensures a safe and private experience for students.'),
             const SizedBox(height: 20),
+
+            // Telegram Community Section
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(FontAwesomeIcons.telegram,
                     color: Colors.blueAccent, size: 24),
                 SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Join our Telegram communities:',
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      '📢 Join @JmbTalks to stay updated!',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Text(
-                      '😂 Join @CNCSMEMES for memes!',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Join our Telegram communities:',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        '📢 Join @JmbTalks to stay updated!',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      Text(
+                        '😂 Join @CNCSMEMES for memes!',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(
-              height: 20,
-            ),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),
